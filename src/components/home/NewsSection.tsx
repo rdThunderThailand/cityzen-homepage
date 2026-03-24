@@ -1,61 +1,56 @@
-import { ChevronRight, Megaphone } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import newsStorm from "@/assets/news-storm.jpg";
+import newsBus from "@/assets/news-bus.jpg";
 
 const news = [
   {
     id: 1,
-    title: "แจ้งปิดถนนเพชรบุรีตัดใหม่ ช่วง 25-30 มี.ค.",
-    category: "ประกาศ",
-    time: "2 ชม. ที่แล้ว",
-    urgent: true,
+    title: "ด่วนค่ะ! พายุฝนเข้าคืนนี้",
+    subtitle: "เตรียมรับมือ",
+    cta: "อ่านเพิ่มเติม",
+    image: newsStorm,
+    gradient: "from-blue-900/80 to-blue-700/60",
   },
   {
     id: 2,
-    title: "เปิดลงทะเบียนตรวจสุขภาพฟรี ประจำเดือนเมษายน",
-    category: "สุขภาพ",
-    time: "5 ชม. ที่แล้ว",
-    urgent: false,
-  },
-  {
-    id: 3,
-    title: "ผลการซ่อมแซมท่อประปาในซอยสุขุมวิท 23 แล้วเสร็จ",
-    category: "อัปเดต",
-    time: "1 วัน ที่แล้ว",
-    urgent: false,
+    title: "ปรับเส้นทางรถเมล์ใหม่",
+    subtitle: "เริ่ม 1 พ.ค. นี้",
+    cta: "ดูรายละเอียด",
+    image: newsBus,
+    gradient: "from-amber-900/80 to-orange-700/60",
   },
 ];
 
 const NewsSection = () => {
   return (
-    <div className="container">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-foreground">ข่าวสารและประกาศ</h2>
-        <Link to="/news" className="flex items-center text-xs text-accent hover:underline">
-          ดูทั้งหมด <ChevronRight className="h-3 w-3" />
-        </Link>
-      </div>
-      <div className="space-y-2.5">
+    <section className="container">
+      <h2 className="mb-3 text-lg font-bold text-foreground">ข่าวสารสำคัญ</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {news.map((item) => (
-          <div
+          <Link
             key={item.id}
-            className="flex items-start gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-secondary/50"
+            to="/news"
+            className="group relative overflow-hidden rounded-2xl shadow-md aspect-[16/9]"
           >
-            <div className={`mt-0.5 rounded-lg p-2 ${item.urgent ? "bg-destructive/10 text-destructive" : "bg-accent/10 text-accent"}`}>
-              <Megaphone className="h-4 w-4" />
+            <img
+              src={item.image}
+              alt={item.title}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-105"
+            />
+            <div className={`absolute inset-0 bg-gradient-to-t ${item.gradient}`} />
+            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+              <h3 className="text-base font-bold leading-tight">{item.title}</h3>
+              <p className="mt-0.5 text-sm opacity-90">{item.subtitle}</p>
+              <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs font-medium">
+                {item.cta} <ChevronRight className="h-3 w-3" />
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground line-clamp-2">{item.title}</p>
-              <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${item.urgent ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"}`}>
-                  {item.category}
-                </span>
-                <span>{item.time}</span>
-              </div>
-            </div>
-          </div>
+          </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

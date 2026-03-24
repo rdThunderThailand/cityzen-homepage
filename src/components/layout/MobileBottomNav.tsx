@@ -1,21 +1,21 @@
-import { Home, Map, AlertTriangle, HelpCircle, User } from "lucide-react";
+import { Home, MapPin, Camera, HelpCircle, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: Home, label: "หน้าหลัก", path: "/" },
-  { icon: Map, label: "แผนที่", path: "/map" },
-  { icon: AlertTriangle, label: "แจ้งปัญหา", path: "/report" },
+  { icon: MapPin, label: "แผนที่", path: "/map" },
+  { icon: Camera, label: "แจ้งปัญหา", path: "/report" },
   { icon: HelpCircle, label: "ช่วยเหลือ", path: "/help" },
-  { icon: User, label: "ของฉัน", path: "/me" },
+  { icon: User, label: "โปรไฟล์", path: "/me" },
 ];
 
 const MobileBottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card shadow-lg md:hidden">
-      <div className="flex items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+      <div className="flex items-center justify-around py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -23,14 +23,14 @@ const MobileBottomNav = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-1 text-xs transition-colors",
+                "flex flex-col items-center gap-0.5 px-3 py-1.5 text-[11px] transition-colors rounded-lg min-w-[60px]",
                 isActive
-                  ? "text-accent"
+                  ? "text-accent font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5", isActive && "animate-pulse-soft")} />
-              <span className="font-medium">{item.label}</span>
+              <item.icon className={cn("h-5 w-5", isActive && "text-accent")} />
+              <span>{item.label}</span>
             </Link>
           );
         })}

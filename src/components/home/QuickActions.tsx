@@ -1,57 +1,49 @@
-import { AlertTriangle, HelpCircle, Heart, MapPin } from "lucide-react";
+import { Camera, Heart, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const actions = [
   {
-    icon: AlertTriangle,
+    icon: Camera,
     label: "แจ้งปัญหา",
-    desc: "แจ้งเหตุในพื้นที่",
+    desc: "ถ่ายรูป ส่งไลน์เลย",
     path: "/report",
-    gradient: "from-red-500 to-orange-500",
+    bg: "bg-gradient-to-r from-blue-500 to-blue-600",
   },
   {
     icon: HelpCircle,
     label: "ขอความช่วยเหลือ",
-    desc: "ขอสนับสนุนเร่งด่วน",
+    desc: "ส่องการก้าวข่วยเหลือ",
     path: "/help",
-    gradient: "from-amber-500 to-yellow-500",
+    bg: "bg-gradient-to-r from-amber-500 to-orange-500",
   },
   {
     icon: Heart,
-    label: "ร่วมช่วยกัน",
-    desc: "บริจาค / อาสา",
+    label: "ร่วมด้วยช่วยกัน",
+    desc: "ช่วยเหลือนสังคม",
     path: "/volunteer",
-    gradient: "from-emerald-500 to-teal-500",
-  },
-  {
-    icon: MapPin,
-    label: "แผนที่เมือง",
-    desc: "ดูสถานที่สำคัญ",
-    path: "/map",
-    gradient: "from-blue-500 to-cyan-500",
+    bg: "bg-gradient-to-r from-emerald-500 to-green-600",
   },
 ];
 
 const QuickActions = () => {
   return (
-    <div className="container">
-      <h2 className="mb-3 text-base font-semibold text-foreground">บริการด่วน</h2>
-      <div className="grid grid-cols-2 gap-3">
+    <section className="container">
+      <div className="grid grid-cols-3 gap-3">
         {actions.map((action) => (
           <Link
             key={action.path}
             to={action.path}
-            className="group relative overflow-hidden rounded-xl bg-card p-4 shadow-sm border transition-all hover:shadow-md hover:-translate-y-0.5"
+            className={`${action.bg} rounded-2xl p-4 text-white text-center shadow-md hover:shadow-lg transition-shadow`}
           >
-            <div className={`mb-3 inline-flex rounded-lg bg-gradient-to-br ${action.gradient} p-2.5`}>
-              <action.icon className="h-5 w-5 text-white" />
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+              <action.icon className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">{action.label}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">{action.desc}</p>
+            <h3 className="text-sm font-bold">{action.label}</h3>
+            <p className="mt-0.5 text-[11px] opacity-80">{action.desc}</p>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
