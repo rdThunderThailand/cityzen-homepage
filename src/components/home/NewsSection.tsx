@@ -24,14 +24,22 @@ const news = [
 
 const NewsSection = () => {
   return (
-    <section className="container">
-      <h2 className="mb-3 text-lg font-bold text-foreground">ข่าวสารสำคัญ</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-foreground">ข่าวสารสำคัญ</h2>
+        <Link
+          to="/news"
+          className="flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+        >
+          ดูทั้งหมด <ChevronRight className="h-3 w-3" />
+        </Link>
+      </div>
+      <div className="space-y-4">
         {news.map((item) => (
           <Link
             key={item.id}
             to="/news"
-            className="group relative overflow-hidden rounded-2xl shadow-md aspect-[16/9]"
+            className="group relative overflow-hidden rounded-2xl shadow-md block aspect-[16/9]"
           >
             <img
               src={item.image}
@@ -50,7 +58,7 @@ const NewsSection = () => {
           </Link>
         ))}
       </div>
-    </section>
+    </div>
   );
 };
 
