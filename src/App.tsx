@@ -8,6 +8,9 @@ import CityMap from "./pages/CityMap";
 import ReportProblem from "./pages/ReportProblem";
 import Help from "./pages/Help";
 import MyPage from "./pages/MyPage";
+import Volunteer from "./pages/Volunteer";
+import News from "./pages/News";
+import Events from "./pages/Events";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,9 @@ const App = () => (
           <Route path="/report" element={<ReportProblem />} />
           <Route path="/help" element={<Help />} />
           <Route path="/me" element={<MyPage />} />
+          <Route path="/volunteer" element={<Volunteer />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/events" element={<Events />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
