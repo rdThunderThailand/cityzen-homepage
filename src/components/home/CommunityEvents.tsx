@@ -1,60 +1,61 @@
-import { Calendar, ChevronRight, MapPin, Users } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import eventDonation from "@/assets/event-donation.jpg";
+import eventCleanup from "@/assets/event-cleanup.jpg";
 
 const events = [
   {
     id: 1,
-    title: "Big Cleaning Day ชุมชนสะอาด",
-    date: "29 มี.ค. 2569",
-    location: "สวนลุมพินี",
-    participants: 45,
+    title: "รับบริจาคของใช้ให้ผู้ประสบภัย",
+    date: "วันเสาร์นี้ 10.00 น.",
+    image: eventDonation,
+    hasRegister: false,
   },
   {
     id: 2,
-    title: "อบรมการป้องกันภัยพิบัติ",
-    date: "2 เม.ย. 2569",
-    location: "ศาลาประชาคม",
-    participants: 30,
+    title: "อาสาสมัครทำความสะอาดสวน",
+    date: "26 เม.ย.",
+    image: eventCleanup,
+    hasRegister: true,
   },
 ];
 
 const CommunityEvents = () => {
   return (
-    <div className="container">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-foreground">กิจกรรมชุมชน</h2>
-        <Link to="/events" className="flex items-center text-xs text-accent hover:underline">
-          ดูทั้งหมด <ChevronRight className="h-3 w-3" />
-        </Link>
-      </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x">
+    <section className="container">
+      <h2 className="mb-3 text-lg font-bold text-foreground">กิจกรรมเพื่อชุมชน</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {events.map((event) => (
           <div
             key={event.id}
-            className="min-w-[260px] snap-start rounded-xl border bg-card p-4 shadow-sm"
+            className="overflow-hidden rounded-2xl border bg-card shadow-sm"
           >
-            <div className="mb-2 inline-flex rounded-full bg-accent/10 px-2.5 py-1 text-[10px] font-medium text-accent">
-              กิจกรรม
+            <div className="aspect-[16/10] overflow-hidden">
+              <img
+                src={event.image}
+                alt={event.title}
+                loading="lazy"
+                className="h-full w-full object-cover transition-transform hover:scale-105"
+              />
             </div>
-            <h3 className="text-sm font-semibold text-foreground line-clamp-2">{event.title}</h3>
-            <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>{event.date}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{event.location}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" />
-                <span>{event.participants} คนเข้าร่วม</span>
+            <div className="p-3.5">
+              <h3 className="text-sm font-semibold text-foreground">{event.title}</h3>
+              <div className="mt-1.5 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{event.date}</span>
+                {event.hasRegister && (
+                  <Link
+                    to="/events"
+                    className="flex items-center gap-0.5 rounded-full border px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-secondary transition-colors"
+                  >
+                    ลงชื่อเข้าร่วม <ChevronRight className="h-3 w-3" />
+                  </Link>
+                )}
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
