@@ -10,7 +10,7 @@ const PublicLayout = ({ children }: PublicLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       <PublicHeader />
-      <main className="pb-20 md:pb-0">{children}</main>
+      <main className="pb-20 lg:pb-8">{children}</main>
       <MobileBottomNav />
     </div>
   );
