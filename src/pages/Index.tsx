@@ -8,12 +8,25 @@ import CommunityEvents from "@/components/home/CommunityEvents";
 const Index = () => {
   return (
     <PublicLayout>
-      <div className="space-y-6 py-5">
+      <div className="container py-6 space-y-8">
+        {/* Hero status row */}
         <CityStatusBanner />
-        <CityMapPreview />
-        <QuickActions />
-        <CommunityEvents />
-        <NewsSection />
+
+        {/* Two-column: map + quick actions on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <CityMapPreview />
+          </div>
+          <div className="lg:col-span-1">
+            <QuickActions />
+          </div>
+        </div>
+
+        {/* Two-column: events + news */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CommunityEvents />
+          <NewsSection />
+        </div>
       </div>
     </PublicLayout>
   );

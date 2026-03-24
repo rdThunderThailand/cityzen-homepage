@@ -1,8 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X, MapPin, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const navItems = [
   { label: "หน้าหลัก", path: "/" },
@@ -14,13 +21,32 @@ const navItems = [
   { label: "กิจกรรมชุมชน", path: "/events" },
 ];
 
+const provinces = [
+  "กรุงเทพมหานคร","กระบี่","กาญจนบุรี","กาฬสินธุ์","กำแพงเพชร",
+  "ขอนแก่น","จันทบุรี","ฉะเชิงเทรา","ชลบุรี","ชัยนาท",
+  "ชัยภูมิ","ชุมพร","เชียงราย","เชียงใหม่","ตรัง",
+  "ตราด","ตาก","นครนายก","นครปฐม","นครพนม",
+  "นครราชสีมา","นครศรีธรรมราช","นครสวรรค์","นนทบุรี","นราธิวาส",
+  "น่าน","บึงกาฬ","บุรีรัมย์","ปทุมธานี","ประจวบคีรีขันธ์",
+  "ปราจีนบุรี","ปัตตานี","พระนครศรีอยุธยา","พังงา","พัทลุง",
+  "พิจิตร","พิษณุโลก","เพชรบุรี","เพชรบูรณ์","แพร่",
+  "พะเยา","ภูเก็ต","มหาสารคาม","มุกดาหาร","แม่ฮ่องสอน",
+  "ยโสธร","ยะลา","ร้อยเอ็ด","ระนอง","ระยอง",
+  "ราชบุรี","ลพบุรี","ลำปาง","ลำพูน","เลย",
+  "ศรีสะเกษ","สกลนคร","สงขลา","สตูล","สมุทรปราการ",
+  "สมุทรสงคราม","สมุทรสาคร","สระแก้ว","สระบุรี","สิงห์บุรี",
+  "สุโขทัย","สุพรรณบุรี","สุราษฎร์ธานี","สุรินทร์","หนองคาย",
+  "หนองบัวลำภู","อ่างทอง","อุดรธานี","อุทัยธานี","อุตรดิตถ์",
+  "อุบลราชธานี","อำนาจเจริญ",
+];
+
 const PublicHeader = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="container flex h-14 items-center justify-between">
+      <div className="container flex h-14 items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img src={cityzenLogo} alt="Cityzen" className="h-9 w-9 object-contain" />
@@ -28,7 +54,7 @@ const PublicHeader = () => {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -48,14 +74,21 @@ const PublicHeader = () => {
           })}
         </nav>
 
-        {/* Right side */}
-        <div className="flex items-center gap-3">
-          <span className="hidden md:inline text-sm text-muted-foreground">
-            สวัสดี, คุณสมชาย
-          </span>
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-bold text-primary">ส</span>
-          </div>
+        {/* Province selector */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Select defaultValue="กรุงเทพมหานคร">
+            <SelectTrigger className="w-auto gap-2 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
+              <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {provinces.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Mobile hamburger */}
           <button
