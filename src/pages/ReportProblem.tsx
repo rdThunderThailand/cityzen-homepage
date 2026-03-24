@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 const problemTypes = [
-  { icon: Road, label: "ถนน / ทางเท้า", value: "road" },
+  { icon: Construction, label: "ถนน / ทางเท้า", value: "road" },
   { icon: Zap, label: "ไฟฟ้า", value: "electric" },
   { icon: Droplets, label: "น้ำ / ท่อ", value: "water" },
   { icon: ShieldAlert, label: "ความปลอดภัย", value: "safety" },
