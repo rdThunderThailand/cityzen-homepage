@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Mail, ChevronRight, AlertTriangle } from "lucide-react";
+import cityzenLogo from "@/assets/cityzen-logo.png";
 
 const footerLinks = {
   citizen: {
@@ -9,8 +10,6 @@ const footerLinks = {
       { label: "แผนที่เมือง", href: "/city-map" },
       { label: "แจ้งปัญหา", href: "/report-problem" },
       { label: "ขอความช่วยเหลือ", href: "/help" },
-      { label: "ข่าวสารสำคัญ", href: "/news" },
-      { label: "ช่วยกัน / บริจาค", href: "/volunteer" },
     ],
   },
   agency: {
@@ -42,13 +41,13 @@ const footerLinks = {
 
 const FooterLinkColumn = ({ title, links }: { title: string; links: { label: string; href: string }[] }) => (
   <div>
-    <h3 className="text-base font-semibold text-white mb-4">{title}</h3>
+    <h3 className="text-base font-semibold text-primary mb-4">{title}</h3>
     <ul className="space-y-2.5">
       {links.map((link) => (
         <li key={link.label}>
           <Link
             to={link.href}
-            className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white transition-colors group"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors group"
           >
             <ChevronRight className="w-3.5 h-3.5 text-accent opacity-70 group-hover:opacity-100 transition-opacity" />
             {link.label}
@@ -61,42 +60,40 @@ const FooterLinkColumn = ({ title, links }: { title: string; links: { label: str
 
 const Footer = () => {
   return (
-    <footer className="bg-[hsl(215,35%,15%)] text-white">
+    <footer className="bg-card border-t border-border">
       {/* Main Footer */}
       <div className="container py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">C</span>
-              </div>
-              <span className="text-xl font-bold">CityZen</span>
+              <img src={cityzenLogo} alt="CityZen" className="h-9 w-9 object-contain" />
+              <span className="text-xl font-bold text-primary">CityZen</span>
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed mb-6">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
               แพลตฟอร์มจากประชาชน เพื่อประชาชน
               <br />
               เชื่อมโยงข้อมูลเมือง
               <br />
               เพื่อการช่วยเหลือและการตัดสินใจที่โปร่งใส
             </p>
-            <div className="space-y-2 text-sm text-slate-300 mb-6">
+            <div className="space-y-2 text-sm text-muted-foreground mb-6">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-red-400" />
+                <MapPin className="w-4 h-4 text-destructive" />
                 <span>ประเทศไทย</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-slate-400" />
-                <a href="mailto:contact@cityzen.asia" className="hover:text-white transition-colors">
+                <Mail className="w-4 h-4 text-muted-foreground" />
+                <a href="mailto:contact@cityzen.asia" className="hover:text-primary transition-colors">
                   contact@cityzen.asia
                 </a>
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 bg-accent/20 text-accent text-sm px-3 py-1.5 rounded-full">
+            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-sm px-3 py-1.5 rounded-full">
               <MapPin className="w-3.5 h-3.5" />
               <span>นะโนาจกะปี กรุงเทพฯ</span>
             </div>
-            <p className="text-xs text-slate-400 mt-2 cursor-pointer hover:text-slate-300">เปลี่ยนพื้นที่</p>
+            <p className="text-xs text-muted-foreground mt-2 cursor-pointer hover:text-primary">เปลี่ยนพื้นที่</p>
           </div>
 
           {/* Link Columns */}
@@ -108,28 +105,26 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10">
-        <div className="container py-4 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-slate-400">
+      <div className="bg-primary">
+        <div className="container py-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-primary-foreground/70">
             <span>© 2026 CityZen Platform</span>
             <span className="hidden md:inline">|</span>
             <span>
-              Powered by <strong className="text-slate-200">ThunderOS</strong>
+              Powered by <strong className="text-primary-foreground">ThunderOS</strong>
             </span>
             <span className="hidden md:inline">|</span>
             <span>Version 0.1 (Citizen Beta)</span>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Dots / social placeholder */}
             <div className="flex gap-1.5">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-2 h-2 rounded-full bg-slate-500" />
+                <div key={i} className="w-2 h-2 rounded-full bg-primary-foreground/40" />
               ))}
             </div>
 
-            {/* Emergency CTA */}
-            <button className="flex items-center gap-2 bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
+            <button className="flex items-center gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
               <AlertTriangle className="w-4 h-4" />
               แจ้งเหตุเร่งด่วน
             </button>
