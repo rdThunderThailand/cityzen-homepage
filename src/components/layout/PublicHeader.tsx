@@ -16,9 +16,8 @@ const navItems = [
   { label: "แผนที่เมือง", path: "/map" },
   { label: "แจ้งปัญหา", path: "/report" },
   { label: "ขอความช่วยเหลือ", path: "/help" },
-  { label: "ร่วมช่วยกัน", path: "/volunteer" },
-  { label: "ข่าวสาร", path: "/news" },
-  { label: "กิจกรรมชุมชน", path: "/events" },
+  { label: "ร่วมด้วยช่วยกัน", path: "/volunteer" },
+  { label: "ข่าวสารและกิจกรรมชุมชน", path: "/news" },
 ];
 
 const provinces = [
@@ -46,11 +45,11 @@ const PublicHeader = () => {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      <div className="container flex h-14 items-center justify-between gap-4">
+      <div className="container flex h-14 lg:h-16 items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={cityzenLogo} alt="Cityzen" className="h-9 w-9 object-contain" />
-          <span className="text-lg font-extrabold text-primary">CityZen</span>
+          <img src={cityzenLogo} alt="Cityzen" className="h-9 w-9 lg:h-10 lg:w-10 object-contain" />
+          <span className="text-lg lg:text-xl font-extrabold text-primary">CityZen</span>
         </Link>
 
         {/* Desktop nav */}
@@ -62,7 +61,7 @@ const PublicHeader = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "bg-accent/10 text-accent font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -80,6 +79,7 @@ const PublicHeader = () => {
             <SelectTrigger className="w-auto gap-2 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
               <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
               <SelectValue />
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               {provinces.map((p) => (

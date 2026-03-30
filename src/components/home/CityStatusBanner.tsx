@@ -1,80 +1,79 @@
-import { Droplets, Wind, Droplet, AlertTriangle } from "lucide-react";
+import { Cloud, Wind, Droplet, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const statusCards = [
   {
-    icon: Droplets,
+    icon: Cloud,
     label: "น้ำฝน",
     value: "5",
     unit: "มม.",
-    bg: "bg-gradient-to-br from-blue-400 to-blue-600",
+    status: "ปกติ",
+    statusColor: "text-success",
+    bgClass: "bg-gradient-to-b from-blue-50 to-white border border-blue-100",
+    iconColor: "text-blue-400",
   },
   {
     icon: Wind,
-    label: "PM 2.5",
-    value: "85",
-    unit: "μg/m³",
-    badge: "อากาศแย่",
-    badgeColor: "bg-orange-400",
-    bg: "bg-gradient-to-br from-amber-400 to-orange-500",
+    label: "สภาพอากาศ",
+    value: "3",
+    unit: "pg/m8.",
+    status: "ปกติ",
+    statusColor: "text-success",
+    bgClass: "bg-gradient-to-b from-green-50 to-white border border-green-100",
+    iconColor: "text-green-500",
   },
   {
     icon: Droplet,
     label: "น้ำประปา",
-    value: "ปกติ",
-    unit: "",
-    badge: "ปกติ",
-    badgeColor: "bg-green-500",
-    bg: "bg-gradient-to-br from-emerald-400 to-green-600",
+    value: "5",
+    unit: "pg/m8",
+    status: "ปกติ",
+    statusColor: "text-success",
+    bgClass: "bg-gradient-to-b from-cyan-50 to-white border border-cyan-100",
+    iconColor: "text-cyan-500",
   },
   {
     icon: AlertTriangle,
     label: "เหตุฉุกเฉิน",
-    value: "",
-    unit: "",
-    badge: "กำลังดำเนินการ",
-    badgeColor: "bg-red-500",
-    bg: "bg-gradient-to-br from-red-400 to-rose-600",
+    value: "1",
+    unit: "รายการ",
+    status: "ปกติ",
+    statusColor: "text-success",
+    bgClass: "bg-gradient-to-b from-red-50 to-white border border-red-100",
+    iconColor: "text-red-400",
   },
 ];
 
 const CityStatusBanner = () => {
   return (
-    <section className="container">
-      <h2 className="mb-3 text-lg font-bold text-foreground">สถานการณ์ตอนนี้</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {statusCards.map((card) => (
-          <div
-            key={card.label}
-            className={`relative rounded-2xl ${card.bg} p-4 text-white overflow-hidden shadow-md`}
-          >
-            {/* Wave decoration */}
-            <div className="absolute bottom-0 left-0 right-0 h-8 opacity-20">
-              <svg viewBox="0 0 200 30" className="w-full h-full" preserveAspectRatio="none">
-                <path d="M0,15 Q50,0 100,15 T200,15 V30 H0 Z" fill="white" />
-              </svg>
-            </div>
-
-            <div className="flex items-center gap-2 mb-2">
-              <card.icon className="h-5 w-5 opacity-90" />
-              <span className="text-sm font-medium opacity-90">{card.label}</span>
-            </div>
-
-            {card.value && (
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold">{card.value}</span>
-                {card.unit && <span className="text-sm opacity-80">{card.unit}</span>}
-              </div>
-            )}
-
-            {card.badge && (
-              <span className={`inline-block mt-1 rounded-full ${card.badgeColor} px-2.5 py-0.5 text-xs font-semibold`}>
-                {card.badge}
-              </span>
-            )}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      {statusCards.map((card) => (
+        <div
+          key={card.label}
+          className={`relative rounded-2xl ${card.bgClass} p-4 lg:p-5 overflow-hidden`}
+        >
+          {/* Wave decoration at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-6 opacity-30">
+            <svg viewBox="0 0 200 20" className="w-full h-full" preserveAspectRatio="none">
+              <path d="M0,10 Q50,0 100,10 T200,10 V20 H0 Z" fill="hsl(210, 80%, 80%)" />
+            </svg>
           </div>
-        ))}
-      </div>
-    </section>
+
+          <div className="flex items-start justify-between mb-2">
+            <card.icon className={`h-8 w-8 lg:h-10 lg:w-10 ${card.iconColor}`} />
+            <div className="text-right">
+              <span className="text-2xl lg:text-4xl font-extrabold text-foreground">{card.value}</span>
+              <span className="text-xs lg:text-sm font-medium text-muted-foreground ml-0.5">{card.unit}</span>
+            </div>
+          </div>
+
+          <p className="text-sm lg:text-base font-semibold text-foreground">{card.label}</p>
+          <div className="flex items-center gap-1 mt-0.5">
+            <CheckCircle2 className={`h-3.5 w-3.5 ${card.statusColor}`} />
+            <span className={`text-xs font-medium ${card.statusColor}`}>{card.status}</span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 
