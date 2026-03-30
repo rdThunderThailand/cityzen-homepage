@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { MapPin, Mail, ChevronRight, AlertTriangle } from "lucide-react";
+import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import cityzenLogo from "@/assets/cityzen-logo.png";
 
 const footerLinks = {
@@ -94,6 +95,38 @@ const Footer = () => {
               <span>นะโนาจกะปี กรุงเทพฯ</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2 cursor-pointer hover:text-primary">เปลี่ยนพื้นที่</p>
+
+            {/* Social */}
+            <div className="flex items-center gap-3 mt-4">
+              <a
+                href="https://facebook.com/cityzen"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary hover:bg-accent hover:text-accent-foreground transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary hover:bg-[hsl(145,63%,42%)] hover:text-white transition-colors"
+                    aria-label="LINE"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-xs text-center">
+                  <h3 className="text-lg font-semibold text-primary mb-2">เพิ่มเพื่อน LINE OA</h3>
+                  <p className="text-sm text-muted-foreground mb-4">สแกน QR Code เพื่อรับแจ้งเตือนสถานการณ์</p>
+                  <div className="mx-auto w-48 h-48 bg-muted rounded-xl flex items-center justify-center border border-border">
+                    <span className="text-xs text-muted-foreground">LINE QR Code</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">@cityzen</p>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {/* Link Columns */}
