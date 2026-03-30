@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
-import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
 
 const footerLinks = {
