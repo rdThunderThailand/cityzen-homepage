@@ -70,14 +70,12 @@ const Footer = () => {
               <img src={cityzenLogo} alt="CityZen" className="h-9 w-9 object-contain" />
               <span className="text-xl font-bold text-primary">CityZen</span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               แพลตฟอร์มจากประชาชน เพื่อประชาชน
               <br />
-              เชื่อมโยงข้อมูลเมือง
-              <br />
-              เพื่อการช่วยเหลือและการตัดสินใจที่โปร่งใส
+              เชื่อมโยงข้อมูลเมือง เพื่อการช่วยเหลือและการตัดสินใจที่โปร่งใส
             </p>
-            <div className="space-y-2 text-sm text-muted-foreground mb-6">
+            <div className="space-y-1.5 text-sm text-muted-foreground mb-3">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-destructive" />
                 <span>ประเทศไทย</span>
@@ -89,40 +87,35 @@ const Footer = () => {
                 </a>
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-sm px-3 py-1.5 rounded-full">
-              <MapPin className="w-3.5 h-3.5" />
-              <span>นะโนาจกะปี กรุงเทพฯ</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 cursor-pointer hover:text-primary">เปลี่ยนพื้นที่</p>
-
-            {/* Social */}
-            <div className="flex items-center gap-3 mt-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full">
+                <MapPin className="w-3 h-3" />
+                <span>กรุงเทพฯ</span>
+              </div>
               <a
                 href="https://facebook.com/cityzen"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary hover:bg-accent hover:text-accent-foreground transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="w-4 h-4" />
+                <Facebook className="w-3.5 h-3.5" />
               </a>
             </div>
-
-            {/* LINE OA QR */}
-            <div className="mt-5 p-4 bg-secondary/50 rounded-xl border border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-full bg-[hsl(145,63%,42%)] flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-primary">เพิ่มเพื่อน LINE OA</p>
-                  <p className="text-xs text-muted-foreground">รับแจ้งเตือนสถานการณ์</p>
-                </div>
+            <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
+              <div className="w-20 h-20 shrink-0 bg-white rounded-lg flex items-center justify-center border border-border">
+                <span className="text-[9px] text-muted-foreground text-center leading-tight">LINE<br />QR Code</span>
               </div>
-              <div className="w-32 h-32 mx-auto bg-white rounded-lg flex items-center justify-center border border-border">
-                <span className="text-[10px] text-muted-foreground text-center leading-tight">LINE<br />QR Code</span>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <div className="w-5 h-5 rounded-full bg-[hsl(145,63%,42%)] flex items-center justify-center">
+                    <MessageCircle className="w-3 h-3 text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-primary">LINE OA</p>
+                </div>
+                <p className="text-xs text-muted-foreground">เพิ่มเพื่อนเพื่อรับแจ้งเตือน</p>
+                <p className="text-xs text-muted-foreground">@cityzen</p>
               </div>
-              <p className="text-xs text-center text-muted-foreground mt-2">@cityzen</p>
             </div>
           </div>
 
