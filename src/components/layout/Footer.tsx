@@ -111,7 +111,7 @@ const Footer = () => {
             <span>© 2026 CityZen Platform</span>
             <span className="hidden md:inline">|</span>
             <span>
-              Powered by <strong className="text-primary-foreground">ThunderOS</strong>
+              Powered by <strong className="text-primary-foreground">Thunder</strong>
             </span>
             <span className="hidden md:inline">|</span>
             <span>Version 0.1 (Citizen Beta)</span>
