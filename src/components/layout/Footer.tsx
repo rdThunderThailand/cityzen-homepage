@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import cityzenLogo from "@/assets/cityzen-logo.png";
 
 const footerLinks = {
@@ -107,25 +106,23 @@ const Footer = () => {
               >
                 <Facebook className="w-4 h-4" />
               </a>
+            </div>
 
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button
-                    className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary hover:bg-[hsl(145,63%,42%)] hover:text-white transition-colors"
-                    aria-label="LINE"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-xs text-center">
-                  <h3 className="text-lg font-semibold text-primary mb-2">เพิ่มเพื่อน LINE OA</h3>
-                  <p className="text-sm text-muted-foreground mb-4">สแกน QR Code เพื่อรับแจ้งเตือนสถานการณ์</p>
-                  <div className="mx-auto w-48 h-48 bg-muted rounded-xl flex items-center justify-center border border-border">
-                    <span className="text-xs text-muted-foreground">LINE QR Code</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-3">@cityzen</p>
-                </DialogContent>
-              </Dialog>
+            {/* LINE OA QR */}
+            <div className="mt-5 p-4 bg-secondary/50 rounded-xl border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-full bg-[hsl(145,63%,42%)] flex items-center justify-center">
+                  <MessageCircle className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-primary">เพิ่มเพื่อน LINE OA</p>
+                  <p className="text-xs text-muted-foreground">รับแจ้งเตือนสถานการณ์</p>
+                </div>
+              </div>
+              <div className="w-32 h-32 mx-auto bg-white rounded-lg flex items-center justify-center border border-border">
+                <span className="text-[10px] text-muted-foreground text-center leading-tight">LINE<br />QR Code</span>
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-2">@cityzen</p>
             </div>
           </div>
 
