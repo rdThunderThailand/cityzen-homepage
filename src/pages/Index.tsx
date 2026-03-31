@@ -7,6 +7,7 @@ import NewsSection from "@/components/home/NewsSection";
 const Index = () => {
   return (
     <PublicLayout>
+      <div className="text-red-500 text-2xl">Test</div>
       <div className="container py-4 lg:py-6 space-y-4 lg:space-y-6">
         <CityStatusBanner />
         <CityMapPreview />
