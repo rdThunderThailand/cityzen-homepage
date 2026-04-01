@@ -8,6 +8,7 @@ const Index = () => {
   return (
     <PublicLayout>
       <div className="container py-4 lg:py-6 space-y-4 lg:space-y-6">
+        <h1 className="text-2xl text-red-500">Test</h1>
         <CityStatusBanner />
         <CityMapPreview />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
