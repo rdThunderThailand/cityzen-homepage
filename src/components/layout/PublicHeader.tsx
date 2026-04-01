@@ -76,7 +76,7 @@ const PublicHeader = () => {
         {/* Province selector */}
         <div className="flex items-center gap-2 shrink-0">
           <Select defaultValue="กรุงเทพมหานคร">
-            <SelectTrigger className="w-auto gap-2 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
+            <SelectTrigger className="w-auto gap-2 rounded-full border-destructive bg-destructive px-3 py-1.5 h-9 text-sm font-medium text-destructive-foreground">
               <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
               <SelectValue />
               <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
