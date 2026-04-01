@@ -79,7 +79,6 @@ const PublicHeader = () => {
             <SelectTrigger className="w-auto gap-2 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
               <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
               <SelectValue />
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               {provinces.map((p) => (
