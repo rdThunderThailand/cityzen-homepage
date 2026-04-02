@@ -49,6 +49,112 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          created_at: string
+          current_participants: number
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          location: string | null
+          max_participants: number | null
+          province_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_participants?: number
+          description?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          max_participants?: number | null
+          province_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_participants?: number
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          max_participants?: number | null
+          province_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          province_id: string
+          published_at: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          province_id: string
+          published_at?: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          province_id?: string
+          published_at?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       provinces: {
         Row: {
           code: string | null
