@@ -106,19 +106,13 @@ const Footer = () => {
                 <span className="text-xs font-medium tracking-wide drop-shadow-[0_0_6px_hsl(221,44%,41%/0.5)]">CityZen Thailand</span>
               </a>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
-              <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-border">
+            <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
+              <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-border">
                 <img src={lineQr} alt="LINE QR Code" className="w-full h-full object-contain" />
               </div>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-5 h-5 rounded-full bg-[hsl(145,63%,42%)] flex items-center justify-center">
-                    <MessageCircle className="w-3 h-3 text-white" />
-                  </div>
-                  <p className="text-sm font-semibold text-primary">LINE OA</p>
-                </div>
-                <p className="text-xs text-muted-foreground">เพิ่มเพื่อนเพื่อรับแจ้งเตือน</p>
-                <p className="text-xs text-muted-foreground">@cityzen</p>
+              <div className="flex flex-col justify-center min-w-0">
+                <p className="text-xs text-muted-foreground">เพิ่มเพื่อนเพื่อรับการแจ้งเตือน</p>
+                <p className="text-sm font-semibold text-[hsl(145,63%,42%)]">@cityzen</p>
               </div>
             </div>
           </div>
