@@ -43,6 +43,42 @@ const ReportProblem = () => {
     setSubdistrictId(undefined);
   };
 
+  const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const maxFiles = 5;
+    const remaining = maxFiles - selectedFiles.length;
+    if (remaining <= 0) {
+      toast({ title: "แนบรูปได้สูงสุด 5 รูป", variant: "destructive" });
+      return;
+    }
+    const newFiles = files.slice(0, remaining);
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
+    newFiles.forEach((f) => {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviews((prev) => [...prev, reader.result as string]);
+      reader.readAsDataURL(f);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of selectedFiles) {
+      const ext = file.name.split(".").pop();
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("report-images").upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("report-images").getPublicUrl(path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
+  };
+
   const handleSubmit = async () => {
     if (!reportType || !description.trim() || !selectedProvince) {
       toast({ title: "กรุณากรอกข้อมูลให้ครบ", description: "เลือกประเภทปัญหาและอธิบายรายละเอียด", variant: "destructive" });
@@ -51,12 +87,15 @@ const ReportProblem = () => {
 
     setSubmitting(true);
     try {
+      const imageUrls = selectedFiles.length > 0 ? await uploadImages() : [];
+
       const { error } = await supabase.from("reports").insert({
         province_id: selectedProvince.id,
         district_id: districtId || null,
         subdistrict_id: subdistrictId || null,
         report_type: reportType as any,
         description: description.trim(),
+        image_urls: imageUrls.length > 0 ? imageUrls : null,
       });
 
       if (error) throw error;
