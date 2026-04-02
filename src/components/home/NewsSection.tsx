@@ -58,6 +58,9 @@ const NewsSection = () => {
                 to="/news"
                 className="group relative overflow-hidden rounded-2xl shadow-md block aspect-[16/9] bg-muted"
               >
+                {item.image_url && (
+                  <img src={item.image_url} alt={item.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                )}
                 <div className={`absolute inset-0 bg-gradient-to-t ${config.gradient}`} />
                 <div className="absolute top-3 left-3">
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white">
