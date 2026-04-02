@@ -119,7 +119,7 @@ const ReportProblem = () => {
           </div>
           <h1 className="text-xl font-bold text-foreground">ส่งเรื่องสำเร็จ!</h1>
           <p className="text-sm text-muted-foreground">เราได้รับแจ้งปัญหาของคุณแล้ว<br />หน่วยงานจะดำเนินการตรวจสอบ</p>
-          <Button onClick={() => { setSubmitted(false); setReportType(null); setDescription(""); setDistrictId(undefined); setSubdistrictId(undefined); }} variant="outline">
+          <Button onClick={() => { setSubmitted(false); setReportType(null); setDescription(""); setDistrictId(undefined); setSubdistrictId(undefined); setSelectedFiles([]); setPreviews([]); }} variant="outline">
             แจ้งปัญหาเพิ่มเติม
           </Button>
         </div>
