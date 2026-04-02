@@ -90,7 +90,7 @@ const Footer = () => {
                 </a>
               </div>
             </div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <div className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full">
                 <MapPin className="w-3 h-3" />
                 <span>{selectedProvince?.name_th || "กรุงเทพมหานคร"}</span>
@@ -99,12 +99,12 @@ const Footer = () => {
                 href="https://facebook.com/cityzen"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="inline-flex items-center gap-2 bg-[hsl(221,44%,41%)]/10 hover:bg-[hsl(221,44%,41%)]/20 text-primary px-3 py-1.5 rounded-full transition-all group"
                 aria-label="Facebook"
               >
                 <Facebook className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium tracking-wide drop-shadow-[0_0_6px_hsl(221,44%,41%/0.5)]">CityZen Thailand</span>
               </a>
-              <span className="text-xs text-muted-foreground">CityZen Thailand</span>
             </div>
             <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
               <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-border">
