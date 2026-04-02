@@ -83,7 +83,7 @@ const PublicHeader = () => {
 
           {/* Testing banner */}
           <span className="text-xs font-medium text-destructive bg-destructive/10 px-2 py-0.5 rounded-full hidden lg:inline-block">
-            กำลังทดสอบระบบ
+            อยู่ระหว่างทดสอบระบบ
           </span>
 
           {/* Mobile hamburger */}
