@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
 import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
+import lineQr from "@/assets/line-qr.png";
 
 const footerLinks = {
   citizen: {
@@ -105,8 +106,8 @@ const Footer = () => {
               </a>
             </div>
             <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
-              <div className="w-20 h-20 shrink-0 bg-white rounded-lg flex items-center justify-center border border-border">
-                <span className="text-[9px] text-muted-foreground text-center leading-tight">LINE<br />QR Code</span>
+              <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-border">
+                <img src={lineQr} alt="LINE QR Code" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-1.5 mb-1">
