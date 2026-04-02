@@ -31,6 +31,9 @@ const ReportProblem = () => {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: districts = [], isLoading: loadingDistricts } = useDistricts(selectedProvince?.id);
   const { data: subdistricts = [], isLoading: loadingSubdistricts } = useSubdistricts(districtId);
