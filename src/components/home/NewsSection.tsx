@@ -63,7 +63,7 @@ const NewsSection = () => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 <div className="absolute top-3 left-3">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white">
+                  <span className={`inline-flex items-center gap-1 rounded-full ${config.badge} backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white`}>
                     <Icon className="h-3 w-3" />
                     {item.category === "emergency" ? "ประกาศฉุกเฉิน" : item.category === "announcement" ? "ข่าวสำคัญ" : item.category === "update" ? "อัปเดต" : "ทั่วไป"}
                   </span>

@@ -77,7 +77,7 @@ const CommunityEvents = () => {
                 {event.image_url ? (
                   <img src={event.image_url} alt={event.title} className="absolute inset-0 h-full w-full object-cover" />
                 ) : null}
-                <div className={`absolute inset-0 bg-gradient-to-t ${cfg.gradient}`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
                 {/* Badge */}
                 <div className="absolute top-3 left-3">
