@@ -97,7 +97,7 @@ const Footer = () => {
               </div>
             </div>
             <a
-              href="https://facebook.com/cityzen"
+              href="https://surl.li/oiizbu"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 bg-secondary/50 text-primary px-2.5 py-1.5 rounded-lg transition-all border border-border hover:border-primary/20 hover:shadow-md whitespace-nowrap mb-2 w-full"
