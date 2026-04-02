@@ -1,6 +1,6 @@
 import PublicLayout from "@/components/layout/PublicLayout";
-import { Camera, MapPin, Send, Zap, Droplets, ShieldAlert, Construction, HelpCircle, Loader2, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { Camera, MapPin, Send, Zap, Droplets, ShieldAlert, Construction, HelpCircle, Loader2, CheckCircle, X } from "lucide-react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useProvince } from "@/contexts/ProvinceContext";
@@ -31,6 +31,9 @@ const ReportProblem = () => {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: districts = [], isLoading: loadingDistricts } = useDistricts(selectedProvince?.id);
   const { data: subdistricts = [], isLoading: loadingSubdistricts } = useSubdistricts(districtId);
@@ -38,6 +41,42 @@ const ReportProblem = () => {
   const handleDistrictChange = (value: string) => {
     setDistrictId(value);
     setSubdistrictId(undefined);
+  };
+
+  const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const maxFiles = 5;
+    const remaining = maxFiles - selectedFiles.length;
+    if (remaining <= 0) {
+      toast({ title: "แนบรูปได้สูงสุด 5 รูป", variant: "destructive" });
+      return;
+    }
+    const newFiles = files.slice(0, remaining);
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
+    newFiles.forEach((f) => {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviews((prev) => [...prev, reader.result as string]);
+      reader.readAsDataURL(f);
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of selectedFiles) {
+      const ext = file.name.split(".").pop();
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("report-images").upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("report-images").getPublicUrl(path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
   };
 
   const handleSubmit = async () => {
@@ -48,12 +87,15 @@ const ReportProblem = () => {
 
     setSubmitting(true);
     try {
+      const imageUrls = selectedFiles.length > 0 ? await uploadImages() : [];
+
       const { error } = await supabase.from("reports").insert({
         province_id: selectedProvince.id,
         district_id: districtId || null,
         subdistrict_id: subdistrictId || null,
         report_type: reportType as any,
         description: description.trim(),
+        image_urls: imageUrls.length > 0 ? imageUrls : null,
       });
 
       if (error) throw error;
@@ -77,7 +119,7 @@ const ReportProblem = () => {
           </div>
           <h1 className="text-xl font-bold text-foreground">ส่งเรื่องสำเร็จ!</h1>
           <p className="text-sm text-muted-foreground">เราได้รับแจ้งปัญหาของคุณแล้ว<br />หน่วยงานจะดำเนินการตรวจสอบ</p>
-          <Button onClick={() => { setSubmitted(false); setReportType(null); setDescription(""); setDistrictId(undefined); setSubdistrictId(undefined); }} variant="outline">
+          <Button onClick={() => { setSubmitted(false); setReportType(null); setDescription(""); setDistrictId(undefined); setSubdistrictId(undefined); setSelectedFiles([]); setPreviews([]); }} variant="outline">
             แจ้งปัญหาเพิ่มเติม
           </Button>
         </div>
@@ -166,16 +208,49 @@ const ReportProblem = () => {
           />
         </div>
 
-        {/* Photo & Location */}
-        <div className="grid grid-cols-2 gap-3">
-          <button className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-muted-foreground hover:border-accent hover:text-accent transition-colors">
-            <Camera className="h-6 w-6" />
-            <span className="text-xs font-medium">แนบรูปภาพ</span>
-          </button>
-          <button className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-muted-foreground hover:border-accent hover:text-accent transition-colors">
-            <MapPin className="h-6 w-6" />
-            <span className="text-xs font-medium">ปักพิกัด</span>
-          </button>
+        {/* Photo upload */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">แนบรูปภาพ (สูงสุด 5 รูป)</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleAddFiles}
+          />
+          {previews.length > 0 && (
+            <div className="mb-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {previews.map((src, i) => (
+                <div key={i} className="relative group rounded-lg overflow-hidden border aspect-square">
+                  <img src={src} alt={`preview-${i}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFile(i)}
+                    className="absolute top-1 right-1 rounded-full bg-background/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-4 w-4 text-destructive" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+            >
+              <Camera className="h-6 w-6" />
+              <span className="text-xs font-medium">
+                {selectedFiles.length > 0 ? `เลือกแล้ว ${selectedFiles.length} รูป` : "แนบรูปภาพ"}
+              </span>
+            </button>
+            <button className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-muted-foreground hover:border-accent hover:text-accent transition-colors">
+              <MapPin className="h-6 w-6" />
+              <span className="text-xs font-medium">ปักพิกัด</span>
+            </button>
+          </div>
         </div>
 
         {/* Submit */}
