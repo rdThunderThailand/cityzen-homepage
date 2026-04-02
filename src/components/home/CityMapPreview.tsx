@@ -1,6 +1,7 @@
 import { Megaphone, HeartHandshake, HelpCircle, Maximize2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
+import type { MapFilter } from "@/components/home/CityStatusBanner";
 
 // Approximate center coordinates for Thai provinces by code
 const provinceCoords: Record<string, { lat: number; lng: number }> = {
@@ -85,17 +86,50 @@ const provinceCoords: Record<string, { lat: number; lng: number }> = {
 
 const DEFAULT_COORDS = { lat: 13.7563, lng: 100.5018 };
 
-const CityMapPreview = () => {
+const filterSearchTerms: Record<string, string> = {
+  fuel: "ปั๊มน้ำมัน+gas+station",
+  weather: "",
+  water: "การประปา+water+supply",
+  emergency: "โรงพยาบาล+hospital+emergency",
+};
+
+const filterLabels: Record<string, string> = {
+  fuel: "🛢️ แสดงปั๊มน้ำมันใกล้เคียง",
+  weather: "🌤️ แสดงสภาพอากาศ",
+  water: "💧 แสดงจุดบริการน้ำประปา",
+  emergency: "🚨 แสดงจุดฉุกเฉิน",
+};
+
+interface CityMapPreviewProps {
+  activeFilter?: MapFilter;
+}
+
+const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   const { selectedProvince } = useProvince();
 
   const coords = selectedProvince?.code
     ? provinceCoords[selectedProvince.code] || DEFAULT_COORDS
     : DEFAULT_COORDS;
 
-  const mapSrc = `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&z=11&output=embed&hl=th`;
+  const searchTerm = activeFilter ? filterSearchTerms[activeFilter] : "";
+  
+  const mapSrc = searchTerm
+    ? `https://maps.google.com/maps?q=${searchTerm}&ll=${coords.lat},${coords.lng}&z=13&output=embed&hl=th`
+    : `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&z=11&output=embed&hl=th`;
+
+  const mapKey = `${selectedProvince?.id || "default"}-${activeFilter || "none"}`;
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border bg-secondary shadow-sm">
+      {/* Filter indicator */}
+      {activeFilter && filterLabels[activeFilter] && (
+        <div className="absolute top-14 left-0 right-0 z-10 flex justify-center px-4">
+          <div className="bg-card/95 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium text-foreground shadow-lg border border-border">
+            {filterLabels[activeFilter]}
+          </div>
+        </div>
+      )}
+
       {/* Action buttons overlaid on top */}
       <div className="absolute top-4 left-0 right-0 z-10 flex justify-center gap-2 lg:gap-3 px-4">
         <Link
@@ -124,7 +158,7 @@ const CityMapPreview = () => {
       {/* Google Maps Embed */}
       <div className="aspect-[16/7] lg:aspect-[16/7] w-full relative">
         <iframe
-          key={selectedProvince?.id || "default"}
+          key={mapKey}
           src={mapSrc}
           className="absolute inset-0 w-full h-full border-0"
           loading="lazy"
