@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Menu, X, MapPin, ChevronDown } from "lucide-react";
+import { Menu, X, MapPin } from "lucide-react";
 import { useState } from "react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
+import { useProvince } from "@/contexts/ProvinceContext";
 import {
   Select,
   SelectContent,
@@ -20,28 +21,15 @@ const navItems = [
   { label: "ข่าวสารและกิจกรรมชุมชน", path: "/news" },
 ];
 
-const provinces = [
-  "กรุงเทพมหานคร","กระบี่","กาญจนบุรี","กาฬสินธุ์","กำแพงเพชร",
-  "ขอนแก่น","จันทบุรี","ฉะเชิงเทรา","ชลบุรี","ชัยนาท",
-  "ชัยภูมิ","ชุมพร","เชียงราย","เชียงใหม่","ตรัง",
-  "ตราด","ตาก","นครนายก","นครปฐม","นครพนม",
-  "นครราชสีมา","นครศรีธรรมราช","นครสวรรค์","นนทบุรี","นราธิวาส",
-  "น่าน","บึงกาฬ","บุรีรัมย์","ปทุมธานี","ประจวบคีรีขันธ์",
-  "ปราจีนบุรี","ปัตตานี","พระนครศรีอยุธยา","พังงา","พัทลุง",
-  "พิจิตร","พิษณุโลก","เพชรบุรี","เพชรบูรณ์","แพร่",
-  "พะเยา","ภูเก็ต","มหาสารคาม","มุกดาหาร","แม่ฮ่องสอน",
-  "ยโสธร","ยะลา","ร้อยเอ็ด","ระนอง","ระยอง",
-  "ราชบุรี","ลพบุรี","ลำปาง","ลำพูน","เลย",
-  "ศรีสะเกษ","สกลนคร","สงขลา","สตูล","สมุทรปราการ",
-  "สมุทรสงคราม","สมุทรสาคร","สระแก้ว","สระบุรี","สิงห์บุรี",
-  "สุโขทัย","สุพรรณบุรี","สุราษฎร์ธานี","สุรินทร์","หนองคาย",
-  "หนองบัวลำภู","อ่างทอง","อุดรธานี","อุทัยธานี","อุตรดิตถ์",
-  "อุบลราชธานี","อำนาจเจริญ",
-];
-
 const PublicHeader = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { provinces, selectedProvince, setSelectedProvince, loading } = useProvince();
+
+  const handleProvinceChange = (value: string) => {
+    const province = provinces.find((p) => p.id === value);
+    if (province) setSelectedProvince(province);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -75,15 +63,19 @@ const PublicHeader = () => {
 
         {/* Province selector */}
         <div className="flex items-center gap-2 shrink-0">
-          <Select defaultValue="กรุงเทพมหานคร">
+          <Select
+            value={selectedProvince?.id ?? ""}
+            onValueChange={handleProvinceChange}
+            disabled={loading}
+          >
             <SelectTrigger className="w-auto gap-2 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
               <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
-              <SelectValue />
+              <SelectValue placeholder={loading ? "กำลังโหลด..." : "เลือกจังหวัด"} />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               {provinces.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name_th}
                 </SelectItem>
               ))}
             </SelectContent>

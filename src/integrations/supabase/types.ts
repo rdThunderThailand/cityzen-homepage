@@ -14,7 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      districts: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          name_en: string | null
+          name_th: string
+          province_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name_en?: string | null
+          name_th: string
+          province_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name_en?: string | null
+          name_th?: string
+          province_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provinces: {
+        Row: {
+          code: string | null
+          created_at: string
+          geo_id: number | null
+          id: string
+          name_en: string | null
+          name_th: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          geo_id?: number | null
+          id?: string
+          name_en?: string | null
+          name_th: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          geo_id?: number | null
+          id?: string
+          name_en?: string | null
+          name_th?: string
+        }
+        Relationships: []
+      }
+      subdistricts: {
+        Row: {
+          code: string | null
+          created_at: string
+          district_id: string
+          id: string
+          name_en: string | null
+          name_th: string
+          zip_code: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          district_id: string
+          id?: string
+          name_en?: string | null
+          name_th: string
+          zip_code?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          district_id?: string
+          id?: string
+          name_en?: string | null
+          name_th?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subdistricts_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

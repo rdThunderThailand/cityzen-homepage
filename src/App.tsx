@@ -12,27 +12,30 @@ import Volunteer from "./pages/Volunteer";
 import News from "./pages/News";
 import Events from "./pages/Events";
 import NotFound from "./pages/NotFound";
+import { ProvinceProvider } from "./contexts/ProvinceContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/map" element={<CityMap />} />
-          <Route path="/report" element={<ReportProblem />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/me" element={<MyPage />} />
-          <Route path="/volunteer" element={<Volunteer />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <ProvinceProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/map" element={<CityMap />} />
+            <Route path="/report" element={<ReportProblem />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/me" element={<MyPage />} />
+            <Route path="/volunteer" element={<Volunteer />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ProvinceProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
