@@ -90,24 +90,24 @@ const Footer = () => {
                 </a>
               </div>
             </div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <div className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full">
                 <MapPin className="w-3 h-3" />
                 <span>{selectedProvince?.name_th || "กรุงเทพมหานคร"}</span>
               </div>
-              <a
-                href="https://facebook.com/cityzen"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 bg-secondary/50 text-primary px-2.5 py-1.5 rounded-lg transition-all border border-border hover:border-primary/20 hover:shadow-md whitespace-nowrap"
-                aria-label="Facebook"
-              >
-                <div className="w-5 h-5 rounded-full bg-[hsl(221,44%,41%)] flex items-center justify-center shrink-0">
-                  <Facebook className="w-3 h-3 text-white" />
-                </div>
-                <span className="text-xs font-semibold tracking-wide">CityZen Thailand</span>
-              </a>
             </div>
+            <a
+              href="https://facebook.com/cityzen"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-secondary/50 text-primary px-2.5 py-1.5 rounded-lg transition-all border border-border hover:border-primary/20 hover:shadow-md whitespace-nowrap mb-2"
+              aria-label="Facebook"
+            >
+              <div className="w-5 h-5 rounded-full bg-[hsl(221,44%,41%)] flex items-center justify-center shrink-0">
+                <Facebook className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-xs font-semibold tracking-wide">CityZen Thailand</span>
+            </a>
             <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
               <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-border">
                 <img src={lineQr} alt="LINE QR Code" className="w-full h-full object-contain" />
