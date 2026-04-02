@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
 import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
+import lineQr from "@/assets/line-qr.png";
 
 const footerLinks = {
   citizen: {
