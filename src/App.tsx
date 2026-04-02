@@ -12,16 +12,18 @@ import Volunteer from "./pages/Volunteer";
 import News from "./pages/News";
 import Events from "./pages/Events";
 import NotFound from "./pages/NotFound";
+import { ProvinceProvider } from "./contexts/ProvinceContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
+      <ProvinceProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/map" element={<CityMap />} />
           <Route path="/report" element={<ReportProblem />} />
