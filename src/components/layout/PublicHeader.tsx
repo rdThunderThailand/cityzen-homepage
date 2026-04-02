@@ -37,7 +37,7 @@ const PublicHeader = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-0.5 shrink-0">
           <img src={cityzenLogo} alt="Cityzen" className="h-20 w-20 lg:h-[90px] lg:w-[90px] object-contain self-center translate-y-1" />
-          <span className="text-lg lg:text-xl font-extrabold text-primary">CityZen</span>
+          <span className="text-lg lg:text-xl font-extrabold text-primary -ml-2">CityZen</span>
         </Link>
 
         {/* Desktop nav */}
