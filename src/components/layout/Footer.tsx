@@ -99,7 +99,7 @@ const Footer = () => {
                 href="https://facebook.com/cityzen"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[hsl(221,70%,55%)]/15 hover:bg-[hsl(221,70%,55%)]/25 text-primary px-4 py-2 rounded-full transition-all border border-primary/10 hover:border-primary/20 shadow-sm hover:shadow-md whitespace-nowrap"
+                className="inline-flex items-center gap-2 bg-secondary/50 text-primary px-3 py-2.5 rounded-xl transition-all border border-border hover:border-primary/20 hover:shadow-md whitespace-nowrap"
                 aria-label="Facebook"
               >
                 <div className="w-6 h-6 rounded-full bg-[hsl(221,44%,41%)] flex items-center justify-center shrink-0">
