@@ -35,8 +35,8 @@ const PublicHeader = () => {
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-14 lg:h-16 items-center justify-between gap-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={cityzenLogo} alt="Cityzen" className="h-20 w-20 lg:h-[90px] lg:w-[90px] object-contain self-center translate-y-1" />
+        <Link to="/" className="flex items-center gap-1 shrink-0">
+          <img src={cityzenLogo} alt="Cityzen" className="h-20 w-20 lg:h-[90px] lg:w-[90px] object-contain self-center translate-y-1 -mr-1" />
           <span className="text-lg lg:text-xl font-extrabold text-primary">CityZen</span>
         </Link>
 
