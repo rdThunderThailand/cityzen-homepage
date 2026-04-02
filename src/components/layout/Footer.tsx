@@ -104,6 +104,7 @@ const Footer = () => {
               >
                 <Facebook className="w-3.5 h-3.5" />
               </a>
+              <span className="text-xs text-muted-foreground">CityZen Thailand</span>
             </div>
             <div className="flex items-start gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
               <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-border">
