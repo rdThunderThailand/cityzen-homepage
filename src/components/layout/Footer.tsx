@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useProvince } from "@/contexts/ProvinceContext";
 import { MapPin, Mail, ChevronRight, AlertTriangle, Facebook, MessageCircle } from "lucide-react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
 
@@ -59,6 +60,7 @@ const FooterLinkColumn = ({ title, links }: { title: string; links: { label: str
 );
 
 const Footer = () => {
+  const { selectedProvince } = useProvince();
   return (
     <footer className="bg-card border-t border-border">
       {/* Main Footer */}
@@ -90,7 +92,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full">
                 <MapPin className="w-3 h-3" />
-                <span>กรุงเทพฯ</span>
+                <span>{selectedProvince?.name_th || "กรุงเทพมหานคร"}</span>
               </div>
               <a
                 href="https://facebook.com/cityzen"
