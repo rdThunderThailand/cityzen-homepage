@@ -36,7 +36,7 @@ const PublicHeader = () => {
       <div className="container flex h-14 lg:h-16 items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src={cityzenLogo} alt="Cityzen" className="h-9 w-9 lg:h-10 lg:w-10 object-contain" />
+          <img src={cityzenLogo} alt="Cityzen" className="h-10 w-10 lg:h-12 lg:w-12 object-contain" />
           <span className="text-lg lg:text-xl font-extrabold text-primary">CityZen</span>
         </Link>
 
