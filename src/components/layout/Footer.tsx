@@ -92,7 +92,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-xs px-2.5 py-1 rounded-full">
                 <MapPin className="w-3 h-3" />
-                <span>กรุงเทพฯ</span>
+                <span>{selectedProvince?.name_th || "กรุงเทพมหานคร"}</span>
               </div>
               <a
                 href="https://facebook.com/cityzen"
