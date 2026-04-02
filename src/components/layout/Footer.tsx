@@ -106,7 +106,7 @@ const Footer = () => {
               <div className="w-5 h-5 rounded-full bg-[hsl(221,44%,41%)] flex items-center justify-center shrink-0">
                 <Facebook className="w-3 h-3 text-white" />
               </div>
-              <span className="text-xs font-semibold tracking-wide">CityZen Thailand</span>
+              <span className="text-xs font-semibold tracking-wide flex-1 text-center">CityZen Thailand</span>
             </a>
             <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
               <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-border">
