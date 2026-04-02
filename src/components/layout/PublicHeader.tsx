@@ -81,6 +81,11 @@ const PublicHeader = () => {
             </SelectContent>
           </Select>
 
+          {/* Testing banner */}
+          <span className="text-xs font-medium text-destructive bg-destructive/10 px-2 py-0.5 rounded-full hidden lg:inline-block">
+            กำลังทดสอบระบบ
+          </span>
+
           {/* Mobile hamburger */}
           <button
             className="lg:hidden p-1.5 rounded-lg hover:bg-secondary"
