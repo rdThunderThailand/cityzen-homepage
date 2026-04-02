@@ -1,9 +1,100 @@
+import { useEffect, useRef, useCallback } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { Megaphone, HeartHandshake, HelpCircle, Maximize2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
 import type { MapFilter } from "@/components/home/CityStatusBanner";
 
-// Approximate center coordinates for Thai provinces by code
+// ─── Mapbox token ────────────────────────────────────────────────────────────
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+
+// ─── Thailand GeoJSON (province boundaries) ──────────────────────────────────
+const THAILAND_GEOJSON_URL =
+  "https://raw.githubusercontent.com/apisit/thailand.json/master/thailand.json";
+
+// ─── Province code → English name (matches thailand.json "name" property) ───
+const provinceCodeToName: Record<string, string> = {
+  "10": "Bangkok Metropolis",
+  "11": "Samut Prakan",
+  "12": "Nonthaburi",
+  "13": "Pathum Thani",
+  "14": "Phra Nakhon Si Ayutthaya",
+  "15": "Ang Thong",
+  "16": "Lop Buri",
+  "17": "Sing Buri",
+  "18": "Chai Nat",
+  "19": "Saraburi",
+  "20": "Chon Buri",
+  "21": "Rayong",
+  "22": "Chanthaburi",
+  "23": "Trat",
+  "24": "Chachoengsao",
+  "25": "Prachin Buri",
+  "26": "Nakhon Nayok",
+  "27": "Sa Kaeo",
+  "30": "Nakhon Ratchasima",
+  "31": "Buri Ram",
+  "32": "Surin",
+  "33": "Si Sa Ket",
+  "34": "Ubon Ratchathani",
+  "35": "Yasothon",
+  "36": "Chaiyaphum",
+  "37": "Amnat Charoen",
+  "38": "Bueng Kan",
+  "39": "Nong Bua Lam Phu",
+  "40": "Khon Kaen",
+  "41": "Udon Thani",
+  "42": "Loei",
+  "43": "Nong Khai",
+  "44": "Maha Sarakham",
+  "45": "Roi Et",
+  "46": "Kalasin",
+  "47": "Sakon Nakhon",
+  "48": "Nakhon Phanom",
+  "49": "Mukdahan",
+  "50": "Chiang Mai",
+  "51": "Lamphun",
+  "52": "Lampang",
+  "53": "Uttaradit",
+  "54": "Phrae",
+  "55": "Nan",
+  "56": "Phayao",
+  "57": "Chiang Rai",
+  "58": "Mae Hong Son",
+  "60": "Nakhon Sawan",
+  "61": "Uthai Thani",
+  "62": "Kamphaeng Phet",
+  "63": "Tak",
+  "64": "Sukhothai",
+  "65": "Phitsanulok",
+  "66": "Phichit",
+  "67": "Phetchabun",
+  "70": "Ratchaburi",
+  "71": "Kanchanaburi",
+  "72": "Suphan Buri",
+  "73": "Nakhon Pathom",
+  "74": "Samut Sakhon",
+  "75": "Samut Songkhram",
+  "76": "Phetchaburi",
+  "77": "Prachuap Khiri Khan",
+  "80": "Nakhon Si Thammarat",
+  "81": "Krabi",
+  "82": "Phangnga",
+  "83": "Phuket",
+  "84": "Surat Thani",
+  "85": "Ranong",
+  "86": "Chumphon",
+  "90": "Songkhla",
+  "91": "Satun",
+  "92": "Trang",
+  "93": "Phatthalung",
+  "94": "Pattani",
+  "95": "Yala",
+  "96": "Narathiwat",
+};
+
+// ─── Province coordinates ────────────────────────────────────────────────────
 const provinceCoords: Record<string, { lat: number; lng: number }> = {
   "10": { lat: 13.7563, lng: 100.5018 },
   "11": { lat: 13.5991, lng: 100.5998 },
@@ -86,38 +177,170 @@ const provinceCoords: Record<string, { lat: number; lng: number }> = {
 
 const DEFAULT_COORDS = { lat: 13.7563, lng: 100.5018 };
 
-const filterSearchTerms: Record<string, string> = {
-  fuel: "ปั๊มน้ำมัน+gas+station",
-  weather: "",
-  water: "การประปา+water+supply",
-  emergency: "โรงพยาบาล+hospital+emergency",
-};
-
 const filterLabels: Record<string, string> = {
-  fuel: "🛢️ แสดงปั๊มน้ำมันใกล้เคียง",
-  weather: "🌤️ แสดงสภาพอากาศ",
-  water: "💧 แสดงจุดบริการน้ำประปา",
+  fuel:      "🛢️ แสดงปั๊มน้ำมันใกล้เคียง",
+  weather:   "🌤️ แสดงสภาพอากาศ",
+  water:     "💧 แสดงจุดบริการน้ำประปา",
   emergency: "🚨 แสดงจุดฉุกเฉิน",
 };
+
+const filterMarkerEmoji: Record<string, string[]> = {
+  fuel:      ["⛽", "🛢️", "⛽"],
+  weather:   ["🌤️", "⛅", "🌧️"],
+  water:     ["💧", "🚿", "💧"],
+  emergency: ["🏥", "🚑", "🔴"],
+};
+
+function jitter(base: number, idx: number, scale = 0.025): number {
+  const offsets = [-1, 0.4, 1.1, -0.6, 0.9];
+  return base + offsets[idx % offsets.length] * scale;
+}
 
 interface CityMapPreviewProps {
   activeFilter?: MapFilter;
 }
 
+const SOURCE_ID = "province-boundary";
+const FILL_LAYER_ID = "province-fill";
+const LINE_LAYER_ID = "province-line";
+
 const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   const { selectedProvince } = useProvince();
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const mapLoadedRef = useRef(false);
+  const geojsonLoadedRef = useRef(false);
 
   const coords = selectedProvince?.code
     ? provinceCoords[selectedProvince.code] || DEFAULT_COORDS
     : DEFAULT_COORDS;
 
-  const searchTerm = activeFilter ? filterSearchTerms[activeFilter] : "";
-  
-  const mapSrc = searchTerm
-    ? `https://maps.google.com/maps?q=${searchTerm}&ll=${coords.lat},${coords.lng}&z=13&output=embed&hl=th`
-    : `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&z=11&output=embed&hl=th`;
+  // ── Apply province filter on line/fill layers ────────────────────────────
+  const applyProvinceFilter = useCallback((provinceName: string | null) => {
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current || !geojsonLoadedRef.current) return;
 
-  const mapKey = `${selectedProvince?.id || "default"}-${activeFilter || "none"}`;
+    const filter = provinceName
+      ? ["==", ["get", "name"], provinceName]
+      : ["==", "name", "__none__"]; // show nothing if no match
+
+    if (map.getLayer(FILL_LAYER_ID)) map.setFilter(FILL_LAYER_ID, filter);
+    if (map.getLayer(LINE_LAYER_ID)) map.setFilter(LINE_LAYER_ID, filter);
+  }, []);
+
+  // ── Initialise map (once) ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: "mapbox://styles/mapbox/streets-v12",
+      center: [coords.lng, coords.lat],
+      zoom: 11,
+      attributionControl: false,
+    });
+
+    map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
+
+    map.on("load", async () => {
+      mapLoadedRef.current = true;
+
+      // ── Add Thailand province GeoJSON source ─────────────────────────────
+      try {
+        const res = await fetch(THAILAND_GEOJSON_URL);
+        const geojson = await res.json();
+
+        map.addSource(SOURCE_ID, { type: "geojson", data: geojson });
+
+        // Semi-transparent yellow fill
+        map.addLayer({
+          id: FILL_LAYER_ID,
+          type: "fill",
+          source: SOURCE_ID,
+          paint: {
+            "fill-color": "#FACC15",
+            "fill-opacity": 0.12,
+          },
+          filter: ["==", "name", "__none__"], // hidden until province selected
+        });
+
+        // Yellow border line
+        map.addLayer({
+          id: LINE_LAYER_ID,
+          type: "line",
+          source: SOURCE_ID,
+          paint: {
+            "line-color": "#FACC15",
+            "line-width": 3,
+            "line-opacity": 0.95,
+          },
+          filter: ["==", "name", "__none__"],
+        });
+
+        geojsonLoadedRef.current = true;
+
+        // Apply current province immediately
+        const code = selectedProvince?.code ?? null;
+        const name = code ? provinceCodeToName[code] ?? null : null;
+        applyProvinceFilter(name);
+      } catch (e) {
+        console.warn("Province GeoJSON failed to load", e);
+      }
+    });
+
+    mapRef.current = map;
+
+    return () => {
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+      mapLoadedRef.current = false;
+      geojsonLoadedRef.current = false;
+      map.remove();
+      mapRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Fly & update border when province changes ────────────────────────────
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.flyTo({ center: [coords.lng, coords.lat], zoom: 11, speed: 1.4, curve: 1.4 });
+
+    const code = selectedProvince?.code ?? null;
+    const name = code ? provinceCodeToName[code] ?? null : null;
+    applyProvinceFilter(name);
+  }, [coords.lat, coords.lng, selectedProvince?.code, applyProvinceFilter]);
+
+  // ── Update markers when filter changes ───────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    if (!activeFilter) return;
+
+    const emojis = filterMarkerEmoji[activeFilter] ?? [];
+    emojis.forEach((emoji, idx) => {
+      const el = document.createElement("div");
+      el.style.cssText = `
+        font-size: 26px; line-height: 1; cursor: pointer;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+        transition: transform 0.15s ease;
+      `;
+      el.textContent = emoji;
+      el.addEventListener("mouseenter", () => { el.style.transform = "scale(1.25)"; });
+      el.addEventListener("mouseleave", () => { el.style.transform = "scale(1)"; });
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([jitter(coords.lng, idx), jitter(coords.lat, idx + 2)])
+        .addTo(map);
+
+      markersRef.current.push(marker);
+    });
+  }, [activeFilter, coords.lat, coords.lng]);
 
   return (
     <div className="relative w-full overflow-hidden rounded-2xl border bg-secondary shadow-sm">
@@ -130,7 +353,7 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
         </div>
       )}
 
-      {/* Action buttons overlaid on top */}
+      {/* Action buttons */}
       <div className="absolute top-4 left-0 right-0 z-10 flex justify-center gap-2 lg:gap-3 px-4">
         <Link
           to="/report"
@@ -155,17 +378,9 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
         </Link>
       </div>
 
-      {/* Google Maps Embed */}
-      <div className="aspect-[16/7] lg:aspect-[16/7] w-full relative">
-        <iframe
-          key={mapKey}
-          src={mapSrc}
-          className="absolute inset-0 w-full h-full border-0"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allowFullScreen
-          title={`แผนที่ ${selectedProvince?.name_th || "กรุงเทพมหานคร"}`}
-        />
+      {/* Mapbox GL container */}
+      <div className="aspect-[16/7] w-full relative">
+        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
 
         {/* ดูแผนที่ button */}
         <Link
