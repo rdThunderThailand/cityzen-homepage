@@ -1,6 +1,6 @@
 import PublicLayout from "@/components/layout/PublicLayout";
-import { Camera, MapPin, Send, Zap, Droplets, ShieldAlert, Construction, HelpCircle, Loader2, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { Camera, MapPin, Send, Zap, Droplets, ShieldAlert, Construction, HelpCircle, Loader2, CheckCircle, X } from "lucide-react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useProvince } from "@/contexts/ProvinceContext";
