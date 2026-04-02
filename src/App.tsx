@@ -24,17 +24,18 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/map" element={<CityMap />} />
-          <Route path="/report" element={<ReportProblem />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/me" element={<MyPage />} />
-          <Route path="/volunteer" element={<Volunteer />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="/" element={<Index />} />
+            <Route path="/map" element={<CityMap />} />
+            <Route path="/report" element={<ReportProblem />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/me" element={<MyPage />} />
+            <Route path="/volunteer" element={<Volunteer />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ProvinceProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
