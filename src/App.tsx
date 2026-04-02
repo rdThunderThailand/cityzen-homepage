@@ -10,7 +10,7 @@ import Help from "./pages/Help";
 import MyPage from "./pages/MyPage";
 import Volunteer from "./pages/Volunteer";
 import News from "./pages/News";
-import Events from "./pages/Events";
+import { Navigate } from "react-router-dom";
 import NotFound from "./pages/NotFound";
 import { ProvinceProvider } from "./contexts/ProvinceContext";
 
