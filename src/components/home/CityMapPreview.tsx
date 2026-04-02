@@ -60,6 +60,7 @@ const CityMapPreview = () => {
       {/* Google Maps Embed */}
       <div className="aspect-[16/7] lg:aspect-[16/7] w-full relative">
         <iframe
+          key={selectedProvince?.id || "default"}
           src={mapSrc}
           className="absolute inset-0 w-full h-full border-0"
           loading="lazy"
