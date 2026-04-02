@@ -104,9 +104,7 @@ const Footer = () => {
               className="flex items-center gap-1.5 bg-secondary/50 text-primary px-2.5 py-1.5 rounded-lg transition-all border border-border hover:border-primary/20 hover:shadow-md whitespace-nowrap mb-2 w-full"
               aria-label="Facebook"
             >
-              <div className="w-5 h-5 rounded-full bg-[hsl(221,44%,41%)] flex items-center justify-center shrink-0">
-                <Facebook className="w-3 h-3 text-white" />
-              </div>
+              <img src={facebookLogo} alt="Facebook" className="w-6 h-6 rounded-full shrink-0" />
               <span className="text-sm font-semibold tracking-wide flex-1 text-center">CityZen Thailand</span>
             </a>
             <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
