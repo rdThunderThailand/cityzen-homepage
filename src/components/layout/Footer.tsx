@@ -105,7 +105,7 @@ const Footer = () => {
               aria-label="Facebook"
             >
               <img src={facebookLogo} alt="Facebook" className="w-6 h-6 rounded-full shrink-0" />
-              <span className="text-sm font-semibold tracking-wide flex-1 text-center">CityZen Thailand</span>
+              <span className="text-base font-semibold tracking-wide flex-1 text-center">CityZen Thailand</span>
             </a>
             <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-xl border border-border">
               <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-border">
