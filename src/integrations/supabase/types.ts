@@ -182,6 +182,82 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          description: string
+          district_id: string | null
+          id: string
+          image_urls: string[] | null
+          latitude: number | null
+          longitude: number | null
+          province_id: string
+          report_type: Database["public"]["Enums"]["report_type"]
+          status: Database["public"]["Enums"]["report_status"]
+          subdistrict_id: string | null
+          title: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          description: string
+          district_id?: string | null
+          id?: string
+          image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
+          province_id: string
+          report_type?: Database["public"]["Enums"]["report_type"]
+          status?: Database["public"]["Enums"]["report_status"]
+          subdistrict_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          description?: string
+          district_id?: string | null
+          id?: string
+          image_urls?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
+          province_id?: string
+          report_type?: Database["public"]["Enums"]["report_type"]
+          status?: Database["public"]["Enums"]["report_status"]
+          subdistrict_id?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_subdistrict_id_fkey"
+            columns: ["subdistrict_id"]
+            isOneToOne: false
+            referencedRelation: "subdistricts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subdistricts: {
         Row: {
           code: string | null
@@ -228,7 +304,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      report_status:
+        | "pending"
+        | "reviewing"
+        | "in_progress"
+        | "resolved"
+        | "rejected"
+      report_type: "road" | "electric" | "water" | "safety" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -355,6 +437,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      report_status: [
+        "pending",
+        "reviewing",
+        "in_progress",
+        "resolved",
+        "rejected",
+      ],
+      report_type: ["road", "electric", "water", "safety", "other"],
+    },
   },
 } as const
