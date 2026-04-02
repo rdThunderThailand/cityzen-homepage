@@ -60,6 +60,7 @@ const FooterLinkColumn = ({ title, links }: { title: string; links: { label: str
 );
 
 const Footer = () => {
+  const { selectedProvince } = useProvince();
   return (
     <footer className="bg-card border-t border-border">
       {/* Main Footer */}
