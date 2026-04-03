@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/thunder-api/:match*",
+      "destination": "https://thundercore.vercel.app/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
