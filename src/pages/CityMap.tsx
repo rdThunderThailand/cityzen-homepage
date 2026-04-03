@@ -19,6 +19,38 @@ import {
 // ─── Token ──────────────────────────────────────────────────────────────────
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
+// ─── Thailand GeoJSON ────────────────────────────────────────────────────────
+const THAILAND_GEOJSON_URL =
+  "https://raw.githubusercontent.com/apisit/thailand.json/master/thailand.json";
+
+// ─── Province code → GeoJSON name ────────────────────────────────────────────
+const provinceCodeToName: Record<string, string> = {
+  "10": "Bangkok Metropolis", "11": "Samut Prakan", "12": "Nonthaburi",
+  "13": "Pathum Thani", "14": "Phra Nakhon Si Ayutthaya", "15": "Ang Thong",
+  "16": "Lop Buri", "17": "Sing Buri", "18": "Chai Nat", "19": "Saraburi",
+  "20": "Chon Buri", "21": "Rayong", "22": "Chanthaburi", "23": "Trat",
+  "24": "Chachoengsao", "25": "Prachin Buri", "26": "Nakhon Nayok", "27": "Sa Kaeo",
+  "30": "Nakhon Ratchasima", "31": "Buri Ram", "32": "Surin", "33": "Si Sa Ket",
+  "34": "Ubon Ratchathani", "35": "Yasothon", "36": "Chaiyaphum", "37": "Amnat Charoen",
+  "38": "Bueng Kan", "39": "Nong Bua Lam Phu", "40": "Khon Kaen", "41": "Udon Thani",
+  "42": "Loei", "43": "Nong Khai", "44": "Maha Sarakham", "45": "Roi Et",
+  "46": "Kalasin", "47": "Sakon Nakhon", "48": "Nakhon Phanom", "49": "Mukdahan",
+  "50": "Chiang Mai", "51": "Lamphun", "52": "Lampang", "53": "Uttaradit",
+  "54": "Phrae", "55": "Nan", "56": "Phayao", "57": "Chiang Rai", "58": "Mae Hong Son",
+  "60": "Nakhon Sawan", "61": "Uthai Thani", "62": "Kamphaeng Phet", "63": "Tak",
+  "64": "Sukhothai", "65": "Phitsanulok", "66": "Phichit", "67": "Phetchabun",
+  "70": "Ratchaburi", "71": "Kanchanaburi", "72": "Suphan Buri", "73": "Nakhon Pathom",
+  "74": "Samut Sakhon", "75": "Samut Songkhram", "76": "Phetchaburi",
+  "77": "Prachuap Khiri Khan", "80": "Nakhon Si Thammarat", "81": "Krabi",
+  "82": "Phangnga", "83": "Phuket", "84": "Surat Thani", "85": "Ranong",
+  "86": "Chumphon", "90": "Songkhla", "91": "Satun", "92": "Trang",
+  "93": "Phatthalung", "94": "Pattani", "95": "Yala", "96": "Narathiwat",
+};
+
+const GEO_SOURCE  = "province-boundary";
+const GEO_FILL   = "province-fill";
+const GEO_LINE   = "province-line";
+
 // ─── Province coordinates ───────────────────────────────────────────────────
 const provinceCoords: Record<string, { lat: number; lng: number }> = {
   "10": { lat: 13.7563, lng: 100.5018 },
@@ -149,26 +181,33 @@ const CityMap = () => {
       if (!cat) return;
 
       cat.places.forEach((place) => {
+        // Root el: Mapbox owns transform (translate for positioning) — do NOT set transform here
         const el = document.createElement("div");
-        el.style.cssText = `
+        el.style.cssText = "display:flex; align-items:center; justify-content:center; cursor:pointer;";
+
+        // Inner wrapper: safe to animate scale
+        const inner = document.createElement("div");
+        inner.style.cssText = `
           width: 36px; height: 36px;
           border-radius: 50%;
           background: ${cat.markerColor};
           border: 3px solid white;
           box-shadow: 0 2px 8px rgba(0,0,0,0.35);
           display: flex; align-items: center; justify-content: center;
-          font-size: 16px; cursor: pointer;
+          font-size: 16px;
           transition: transform 0.15s ease, box-shadow 0.15s ease;
         `;
-        el.textContent = cat.emoji;
-        el.addEventListener("mouseenter", () => {
-          el.style.transform = "scale(1.2)";
-          el.style.boxShadow = "0 4px 16px rgba(0,0,0,0.45)";
+        inner.textContent = cat.emoji;
+        inner.addEventListener("mouseenter", () => {
+          inner.style.transform = "scale(1.2)";
+          inner.style.boxShadow = "0 4px 16px rgba(0,0,0,0.45)";
         });
-        el.addEventListener("mouseleave", () => {
-          el.style.transform = "scale(1)";
-          el.style.boxShadow = "0 2px 8px rgba(0,0,0,0.35)";
+        inner.addEventListener("mouseleave", () => {
+          inner.style.transform = "scale(1)";
+          inner.style.boxShadow = "0 2px 8px rgba(0,0,0,0.35)";
         });
+        el.appendChild(inner);
+
 
         const lngLat: [number, number] = [
           center.lng + place.lngOffset,
@@ -195,58 +234,103 @@ const CityMap = () => {
     []
   );
 
-  // ── Initialise map ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
+// ── Initialise map ──────────────────────────────────────────
+useEffect(() => {
+  if (!mapContainerRef.current) return;
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [coords.lng, coords.lat],
-      zoom: 13,
-      attributionControl: false,
-    });
+  // Start directly at the target position — no animation needed on init
+  const map = new mapboxgl.Map({
+    container: mapContainerRef.current,
+    style: "mapbox://styles/mapbox/standard",
+    center: [coords.lng, coords.lat],
+    zoom: 14,
+    pitch: 45,
+    bearing: -10,
+    attributionControl: false,
+  });
 
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
-    map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }), "bottom-right");
+  map.on("style.load", () => {
+    try {
+      map.setConfigProperty("basemap", "lightPreset", "day");
+      map.setConfigProperty("basemap", "show3dObjects", true);
+    } catch { /* ignore */ }
+  });
 
-    map.on("load", () => {
-      setMapLoaded(true);
-    });
+  map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left");
+  map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }), "bottom-right");
 
-    mapRef.current = map;
+  map.on("load", async () => {
+    // ── Load Thailand GeoJSON for province borders ──────────────────────────
+    try {
+      const res = await fetch(THAILAND_GEOJSON_URL);
+      const geojson = await res.json();
 
-    return () => {
-      Object.values(markersRef.current).flat().forEach((m) => m.remove());
-      markersRef.current = {};
-      userMarkerRef.current?.remove();
-      map.remove();
-      mapRef.current = null;
-      setMapLoaded(false);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      map.addSource(GEO_SOURCE, { type: "geojson", data: geojson });
 
-  // ── Render all active layers when map loads ───────────────────────────────
-  useEffect(() => {
-    if (!mapLoaded) return;
+      map.addLayer({
+        id: GEO_FILL, type: "fill", source: GEO_SOURCE,
+        paint: { "fill-color": "#FACC15", "fill-opacity": 0.12 },
+        filter: ["==", "name", "__none__"],
+      });
+
+      map.addLayer({
+        id: GEO_LINE, type: "line", source: GEO_SOURCE,
+        paint: { "line-color": "#FACC15", "line-width": 3, "line-opacity": 0.95 },
+        filter: ["==", "name", "__none__"],
+      });
+    } catch (e) {
+      console.warn("[CityMap] GeoJSON failed:", e);
+    }
+
+    setMapLoaded(true);
+  });
+
+  mapRef.current = map;
+
+  return () => {
+    Object.values(markersRef.current).flat().forEach((m) => m.remove());
+    markersRef.current = {};
+    userMarkerRef.current?.remove();
+    map.remove();
+    mapRef.current = null;
+    setMapLoaded(false);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
+// ── Apply province border when mapLoaded or selectedProvince changes ─────────
+useEffect(() => {
+  const map = mapRef.current;
+  if (!map || !mapLoaded) return;
+  const code = selectedProvince?.code ?? null;
+  const geoName = code ? provinceCodeToName[code] ?? null : null;
+  const filter = geoName ? ["==", ["get", "name"], geoName] : ["==", "name", "__none__"];
+  if (map.getLayer(GEO_FILL)) map.setFilter(GEO_FILL, filter);
+  if (map.getLayer(GEO_LINE)) map.setFilter(GEO_LINE, filter);
+}, [mapLoaded, selectedProvince]);
+
+// ── Smooth transition when province changes ───────────────────────────────
+useEffect(() => {
+  if (!mapRef.current) return;
+
+  // easeTo = constant-speed pan+zoom, no "zoom out" arc → feels smoother
+  mapRef.current.easeTo({
+    center: [coords.lng, coords.lat],
+    zoom: 14,
+    pitch: 45,
+    bearing: -10,
+    duration: 1800,
+    easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // ease-in-out
+  });
+
+  if (mapLoaded) {
     CATEGORIES.forEach((cat) => {
       renderMarkers(cat.id, activeLayers.has(cat.id), coords);
     });
+  }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapLoaded]);
+}, [coords.lat, coords.lng]);
 
-  // ── Fly to province when it changes ─────────────────────────────────────
-  useEffect(() => {
-    if (!mapRef.current) return;
-    mapRef.current.flyTo({ center: [coords.lng, coords.lat], zoom: 13, speed: 1.4 });
-    if (mapLoaded) {
-      CATEGORIES.forEach((cat) => {
-        renderMarkers(cat.id, activeLayers.has(cat.id), coords);
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coords.lat, coords.lng]);
 
   // ── Toggle layer ─────────────────────────────────────────────────────────
   const toggleLayer = (id: string) => {
@@ -423,9 +507,165 @@ const CityMap = () => {
             })}
           </div>
         )}
+
+        {/* ── Dev Camera Panel ──────────────────────────────────────────── */}
+        <CameraDevPanel mapRef={mapRef} />
       </div>
     </PublicLayout>
   );
 };
+
+// ─── Camera Dev Panel (ใช้ตอน dev เท่านั้น) ─────────────────────────────────
+function CameraDevPanel({ mapRef }: { mapRef: React.RefObject<mapboxgl.Map | null> }) {
+  const [open, setOpen] = useState(false);
+  const [cam, setCam] = useState({ zoom: 16, pitch: 45, bearing: -10 });
+  const [light, setLight] = useState<"day" | "dusk" | "dawn" | "night">("day");
+  const [copied, setCopied] = useState(false);
+
+  // ── sync sliders FROM map (drag, scroll, etc.) ──────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const onMove = () => {
+      const m = mapRef.current;
+      if (!m) return;
+      setCam({
+        zoom:    +m.getZoom().toFixed(1),
+        pitch:   +m.getPitch().toFixed(0),
+        bearing: +m.getBearing().toFixed(0),
+      });
+    };
+    const m = mapRef.current;
+    m?.on("move", onMove);
+    return () => { m?.off("move", onMove); };
+  }, [open, mapRef]);
+
+  // ── apply sliders TO map ─────────────────────────────────────────────────
+  const apply = (next: typeof cam) => {
+    setCam(next);
+    mapRef.current?.easeTo({ zoom: next.zoom, pitch: next.pitch, bearing: next.bearing, duration: 300 });
+  };
+
+  const applyLight = (preset: typeof light) => {
+    setLight(preset);
+    try { mapRef.current?.setConfigProperty("basemap", "lightPreset", preset); } catch {}
+  };
+
+  const copyCode = () => {
+    const code = `zoom: ${cam.zoom}, pitch: ${cam.pitch}, bearing: ${cam.bearing}`;
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
+  const LIGHTS: (typeof light)[] = ["day", "dawn", "dusk", "night"];
+  const lightEmoji = { day: "☀️", dawn: "🌅", dusk: "🌆", night: "🌙" };
+
+  return (
+    <>
+      {/* toggle button */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Camera controls"
+        style={{
+          position: "absolute", top: 12, right: 12, zIndex: 40,
+          background: open ? "#1e293b" : "rgba(255,255,255,0.92)",
+          color: open ? "#fff" : "#1e293b",
+          border: "none", borderRadius: 10, padding: "8px 12px",
+          fontWeight: 700, fontSize: 13, cursor: "pointer",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
+          backdropFilter: "blur(6px)",
+          display: "flex", alignItems: "center", gap: 6,
+        }}
+      >
+        🎛️ Camera
+      </button>
+
+      {/* panel */}
+      {open && (
+        <div style={{
+          position: "absolute", top: 52, right: 12, zIndex: 40,
+          width: 260, background: "rgba(15,23,42,0.92)", backdropFilter: "blur(12px)",
+          borderRadius: 16, padding: "16px", color: "#fff",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          fontFamily: "system-ui,sans-serif",
+        }}>
+          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14, color: "#94a3b8", letterSpacing: "0.06em" }}>
+            CAMERA CONTROLS
+          </div>
+
+          {/* Sliders */}
+          {([
+            { key: "zoom",    label: "Zoom",    min: 0,    max: 22,  step: 0.1 },
+            { key: "pitch",   label: "Pitch",   min: 0,    max: 85,  step: 1   },
+            { key: "bearing", label: "Bearing", min: -180, max: 180, step: 1   },
+          ] as const).map(({ key, label, min, max, step }) => (
+            <div key={key} style={{ marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>{label}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", minWidth: 36, textAlign: "right" }}>
+                  {cam[key]}
+                </span>
+              </div>
+              <input
+                type="range" min={min} max={max} step={step}
+                value={cam[key]}
+                onChange={(e) => apply({ ...cam, [key]: +e.target.value })}
+                style={{ width: "100%", accentColor: "#6366f1", cursor: "pointer" }}
+              />
+            </div>
+          ))}
+
+          {/* Light preset */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginBottom: 6 }}>LIGHT PRESET</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {LIGHTS.map((l) => (
+                <button
+                  key={l}
+                  onClick={() => applyLight(l)}
+                  title={l}
+                  style={{
+                    flex: 1, padding: "6px 0",
+                    borderRadius: 8, border: "2px solid",
+                    borderColor: light === l ? "#6366f1" : "transparent",
+                    background: light === l ? "rgba(99,102,241,0.25)" : "rgba(255,255,255,0.08)",
+                    cursor: "pointer", fontSize: 16,
+                  }}
+                >
+                  {lightEmoji[l]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Current code */}
+          <div style={{
+            background: "rgba(0,0,0,0.35)", borderRadius: 8, padding: "8px 10px",
+            fontFamily: "monospace", fontSize: 10, color: "#7dd3fc",
+            marginBottom: 10, lineHeight: 1.8,
+          }}>
+            zoom: {cam.zoom}<br />
+            pitch: {cam.pitch}<br />
+            bearing: {cam.bearing}<br />
+            lightPreset: "{light}"
+          </div>
+
+          <button
+            onClick={copyCode}
+            style={{
+              width: "100%", padding: "9px 0",
+              borderRadius: 9, border: "none",
+              background: copied ? "#22c55e" : "#6366f1",
+              color: "#fff", fontWeight: 700, fontSize: 13,
+              cursor: "pointer", transition: "background 0.2s",
+            }}
+          >
+            {copied ? "✅ Copied!" : "📋 Copy code"}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default CityMap;

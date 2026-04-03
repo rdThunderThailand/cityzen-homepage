@@ -11,6 +11,14 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      "/thunder-api": {
+        target: "https://thundercore.vercel.app",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/thunder-api/, ""),
+        secure: true,
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

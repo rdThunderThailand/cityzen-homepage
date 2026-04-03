@@ -26,6 +26,10 @@ const PublicHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { provinces, selectedProvince, setSelectedProvince, loading } = useProvince();
 
+  // แสดงเฉพาะจังหวัดที่เปิดใช้งาน
+  const ALLOWED_CODES = ["10", "20", "66"]; // กรุงเทพ, ชลบุรี, พิจิตร
+  const visibleProvinces = provinces.filter((p) => ALLOWED_CODES.includes(p.code ?? ""));
+
   const handleProvinceChange = (value: string) => {
     const province = provinces.find((p) => p.id === value);
     if (province) setSelectedProvince(province);
@@ -73,7 +77,7 @@ const PublicHeader = () => {
               <SelectValue placeholder={loading ? "กำลังโหลด..." : "เลือกจังหวัด"} />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {provinces.map((p) => (
+              {visibleProvinces.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.name_th}
                 </SelectItem>
