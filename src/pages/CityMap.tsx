@@ -14,7 +14,45 @@ import {
   X,
   MapPin,
   Navigation2,
+  Check,
+  ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
+
+// ─── Thunder Core API ────────────────────────────────────────────────────────
+const THUNDER_BASE = "/thunder-api";
+
+interface FuelType { id: string; code: string; name: string; color_code: string; sort_order: number; }
+interface FuelStatus { is_available: boolean; price: number; updated_at: string; fuel_type: FuelType; }
+interface FuelStation {
+  id: string; name: string; brand: string;
+  latitude: number; longitude: number;
+  province: string; district?: string; address?: string;
+  is_active: boolean; fuel_status: FuelStatus[];
+}
+
+const brandStyle: Record<string, { bg: string; text: string }> = {
+  PTT:      { bg: "#E31837", text: "#fff" },
+  Shell:    { bg: "#FFD100", text: "#111" },
+  Esso:     { bg: "#0062A3", text: "#fff" },
+  Caltex:   { bg: "#E31837", text: "#fff" },
+  Bangchak: { bg: "#2E7D32", text: "#fff" },
+  Susco:    { bg: "#0082C8", text: "#fff" },
+};
+const defaultBrand = { bg: "#475569", text: "#fff" };
+
+async function fetchFuelStations(provinceName: string): Promise<FuelStation[]> {
+  try {
+    const url = `${THUNDER_BASE}/api/fuel/stations?province=${encodeURIComponent(provinceName)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const json = await res.json();
+    return (json.data ?? json) as FuelStation[];
+  } catch (e) {
+    console.warn("[CityMap] fetchFuelStations failed:", e);
+    return [];
+  }
+}
 
 // ─── Token ──────────────────────────────────────────────────────────────────
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
@@ -102,11 +140,7 @@ const CATEGORIES: Category[] = [
     color: "bg-amber-500",
     markerColor: "#f59e0b",
     emoji: "⛽",
-    places: [
-      { name: "ปั๊ม PTT", latOffset: -0.01, lngOffset: -0.02, detail: "เปิด 24 ชั่วโมง" },
-      { name: "ปั๊ม Shell", latOffset: 0.025, lngOffset: 0.01, detail: "เปิด 06:00-22:00" },
-      { name: "ปั๊ม Bangchak", latOffset: -0.02, lngOffset: 0.03, detail: "เปิด 06:00-22:00" },
-    ],
+    places: [], // ← ดึงจาก Thunder Core API จริง (ดู renderFuelMarkers)
   },
   {
     id: "ev",
@@ -160,6 +194,8 @@ const CityMap = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const [selectedStation, setSelectedStation] = useState<FuelStation | null>(null);
+  const [fuelStationCount, setFuelStationCount] = useState<number>(0);
 
   const coords = selectedProvince?.code
     ? provinceCoords[selectedProvince.code] || DEFAULT_COORDS
@@ -309,36 +345,119 @@ useEffect(() => {
   if (map.getLayer(GEO_LINE)) map.setFilter(GEO_LINE, filter);
 }, [mapLoaded, selectedProvince]);
 
-// ── Smooth transition when province changes ───────────────────────────────
+// ── Animation when province changes ─────────────────────────────────────────
 useEffect(() => {
   if (!mapRef.current) return;
 
-  // easeTo = constant-speed pan+zoom, no "zoom out" arc → feels smoother
-  mapRef.current.easeTo({
+  // Use flyTo with a high curve to create a "zoom out and fly" effect
+  mapRef.current.flyTo({
     center: [coords.lng, coords.lat],
     zoom: 14,
     pitch: 45,
     bearing: -10,
-    duration: 1800,
-    easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // ease-in-out
+    speed: 1.2,
+    curve: 2.5, // สูงกว่าปกติ (default 1.42) เพื่อให้เห็นการซูมออกชัดเจน
+    essential: true,
   });
 
   if (mapLoaded) {
     CATEGORIES.forEach((cat) => {
-      renderMarkers(cat.id, activeLayers.has(cat.id), coords);
+      if (cat.id === "fuel") {
+        renderFuelMarkers(activeLayers.has(cat.id));
+      } else {
+        renderMarkers(cat.id, activeLayers.has(cat.id), coords);
+      }
     });
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [coords.lat, coords.lng]);
 
 
+  // ── Real fuel markers from Thunder Core ──────────────────────────────────
+  const renderFuelMarkers = useCallback(async (active: boolean) => {
+    const map = mapRef.current;
+    (markersRef.current["fuel"] || []).forEach((m) => m.remove());
+    markersRef.current["fuel"] = [];
+    if (!active || !map) return;
+
+    const provinceName = selectedProvince?.name_th ?? "กรุงเทพมหานคร";
+    const stations = await fetchFuelStations(provinceName);
+    const valid = stations.filter(
+      (s) => s.latitude && s.longitude && Math.abs(s.latitude) < 90 && Math.abs(s.longitude) < 180
+    );
+    setFuelStationCount(valid.length);
+
+    valid.forEach((station) => {
+      const style = brandStyle[station.brand] ?? defaultBrand;
+      const hasAvail = (station.fuel_status ?? []).some((f) => f.is_available);
+
+      const el = document.createElement("div");
+      el.style.cssText = "display:flex;align-items:center;justify-content:center;cursor:pointer;";
+
+      const inner = document.createElement("div");
+      inner.style.cssText = `
+        display:flex;flex-direction:column;align-items:center;
+        transition:transform 0.15s ease;
+        filter:drop-shadow(0 3px 8px rgba(0,0,0,0.28));
+      `;
+      inner.innerHTML = `
+        <div style="
+          width:36px;height:36px;border-radius:50%;
+          background:${style.bg};color:${style.text};
+          display:flex;align-items:center;justify-content:center;
+          border:3px solid rgba(255,255,255,0.95);font-size:17px;
+          position:relative;
+        ">
+          ⛽
+          <div style="
+            position:absolute;bottom:-3px;right:-3px;
+            width:11px;height:11px;border-radius:50%;
+            background:${hasAvail ? "#22C55E" : "#EF4444"};
+            border:2px solid #fff;
+          "></div>
+        </div>
+        <div style="
+          width:7px;height:7px;background:${style.bg};
+          clip-path:polygon(0 0,100% 0,50% 100%);margin-top:-1px;
+        "></div>
+      `;
+      inner.addEventListener("mouseenter", () => { inner.style.transform = "scale(1.2)"; });
+      inner.addEventListener("mouseleave", () => { inner.style.transform = "scale(1)"; });
+      inner.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setSelectedStation(station);
+      });
+      el.appendChild(inner);
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([station.longitude, station.latitude])
+        .addTo(map);
+      markersRef.current["fuel"].push(marker);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProvince?.name_th]);
+
+  // ── Re-fetch fuel when province or mapLoaded changes ───────────────────────
+  useEffect(() => {
+    if (!mapLoaded) return;
+    if (activeLayers.has("fuel")) {
+      renderFuelMarkers(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProvince?.name_th, mapLoaded]);
+
   // ── Toggle layer ─────────────────────────────────────────────────────────
   const toggleLayer = (id: string) => {
     setActiveLayers((prev) => {
       const next = new Set(prev);
       const isActive = next.has(id);
+      const nowActive = !isActive;
       isActive ? next.delete(id) : next.add(id);
-      renderMarkers(id, !isActive, coords);
+      if (id === "fuel") {
+        renderFuelMarkers(nowActive);
+      } else {
+        renderMarkers(id, nowActive, coords);
+      }
       return next;
     });
   };
@@ -479,7 +598,7 @@ useEffect(() => {
                   </span>
                   {isActive && (
                     <span className="ml-auto text-xs text-muted-foreground">
-                      {cat.places.length}
+                      {cat.id === "fuel" ? fuelStationCount : cat.places.length}
                     </span>
                   )}
                 </button>
@@ -510,7 +629,145 @@ useEffect(() => {
 
         {/* ── Dev Camera Panel ──────────────────────────────────────────── */}
         <CameraDevPanel mapRef={mapRef} />
+
+        {/* ── Station Modal ─────────────────────────────────────────────── */}
+        {selectedStation && (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 60,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)",
+            }}
+            onClick={() => setSelectedStation(null)}
+          >
+            <div
+              style={{
+                background: "#fff", borderRadius: 20, width: 340, maxWidth: "90vw",
+                boxShadow: "0 24px 64px rgba(0,0,0,0.22)",
+                overflow: "hidden", fontFamily: "system-ui,sans-serif",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              {(() => {
+                const bStyle = brandStyle[selectedStation.brand] ?? defaultBrand;
+                return (
+                  <div style={{ background: bStyle.bg, color: bStyle.text, padding: "16px 18px 14px", position: "relative" }}>
+                    <div style={{ fontWeight: 800, fontSize: 17 }}>{selectedStation.name}</div>
+                    <div style={{ fontSize: 12, opacity: 0.82, marginTop: 3 }}>
+                      {selectedStation.brand} &middot; {selectedStation.district ?? selectedStation.province}
+                    </div>
+                    <button
+                      onClick={() => setSelectedStation(null)}
+                      style={{
+                        position: "absolute", top: 12, right: 12,
+                        background: "rgba(255,255,255,0.25)", border: "none",
+                        borderRadius: 8, width: 28, height: 28,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", color: bStyle.text, fontSize: 16,
+                      }}
+                    >×</button>
+                  </div>
+                );
+              })()}
+
+              <div style={{ padding: "16px 18px" }}>
+                {/* Availability chips */}
+                {(selectedStation.fuel_status?.length ?? 0) > 0 && (
+                  <>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", marginBottom: 8 }}>FUEL AVAILABILITY</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                      {selectedStation.fuel_status.map((f, i) => (
+                        <span
+                          key={f.fuel_type?.id ?? i}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            padding: "4px 10px", borderRadius: 20,
+                            background: f.is_available ? "#f0fdf4" : "#fef2f2",
+                            border: `1px solid ${f.is_available ? "#bbf7d0" : "#fecaca"}`,
+                            fontSize: 12, color: f.is_available ? "#166534" : "#991b1b",
+                          }}
+                        >
+                          {f.is_available
+                            ? <Check style={{ width: 12, height: 12 }} strokeWidth={3} />
+                            : <X style={{ width: 12, height: 12 }} strokeWidth={3} />
+                          }
+                          {f.fuel_type?.name ?? f.fuel_type?.code}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Price list */}
+                {selectedStation.fuel_status?.some((f) => f.price > 0) && (
+                  <div style={{ marginBottom: 16 }}>
+                    {selectedStation.fuel_status
+                      .filter((f) => f.price > 0)
+                      .sort((a, b) => (a.fuel_type?.sort_order ?? 0) - (b.fuel_type?.sort_order ?? 0))
+                      .map((f, i) => (
+                        <div
+                          key={f.fuel_type?.id ?? i}
+                          style={{
+                            display: "flex", justifyContent: "space-between",
+                            alignItems: "center", padding: "7px 0",
+                            borderBottom: "1px solid #f1f5f9",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{
+                              width: 8, height: 8, borderRadius: "50%",
+                              background: f.fuel_type?.color_code ?? "#94a3b8",
+                            }} />
+                            <span style={{ fontSize: 13, color: "#374151" }}>
+                              {f.fuel_type?.name ?? f.fuel_type?.code}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>
+                            ฿{f.price.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                  <button
+                    style={{
+                      flex: 1, padding: "11px 0", borderRadius: 12, border: "none",
+                      background: (brandStyle[selectedStation.brand] ?? defaultBrand).bg,
+                      color: (brandStyle[selectedStation.brand] ?? defaultBrand).text,
+                      fontWeight: 700, fontSize: 14, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    }}
+                    onClick={() => {
+                      mapRef.current?.easeTo({
+                        center: [selectedStation.longitude, selectedStation.latitude],
+                        zoom: 17, pitch: 45, duration: 800,
+                      });
+                      setSelectedStation(null);
+                    }}
+                  >
+                    นำทาง <ChevronRight style={{ width: 16, height: 16 }} />
+                  </button>
+                  <button
+                    style={{
+                      flex: 1, padding: "11px 0", borderRadius: 12, border: "none",
+                      background: "#1e293b", color: "#fff",
+                      fontWeight: 700, fontSize: 14, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    }}
+                  >
+                    <AlertTriangle style={{ width: 14, height: 14 }} /> Report
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
     </PublicLayout>
   );
 };

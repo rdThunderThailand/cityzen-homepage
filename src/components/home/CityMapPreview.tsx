@@ -461,7 +461,15 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   // ── Fly + border on province change ─────────────────────────────────────
   useEffect(() => {
     if (!mapRef.current) return;
-    mapRef.current.flyTo({ center: [coords.lng, coords.lat], zoom: 14, pitch: 50, bearing: -10, speed: 1.4, curve: 1.4 });
+    mapRef.current.flyTo({
+      center: [coords.lng, coords.lat],
+      zoom: 14,
+      pitch: 50,
+      bearing: -10,
+      speed: 1.2,
+      curve: 2.5, // สูงกว่าปกติเพื่อให้ซูมออกเยอะๆ (zoom out then in)
+      essential: true,
+    });
     const code = selectedProvince?.code ?? null;
     applyProvinceFilter(code ? provinceCodeToName[code] ?? null : null);
   }, [coords.lat, coords.lng, selectedProvince?.code, applyProvinceFilter]);
