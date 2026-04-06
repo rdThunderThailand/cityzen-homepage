@@ -54,8 +54,7 @@ async function fetchFuelStations(provinceName: string): Promise<FuelStation[]> {
   }
 }
 
-// ─── Token ──────────────────────────────────────────────────────────────────
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+import { getMapboxToken } from "@/lib/mapbox";
 
 // ─── Thailand GeoJSON ────────────────────────────────────────────────────────
 const THAILAND_GEOJSON_URL =

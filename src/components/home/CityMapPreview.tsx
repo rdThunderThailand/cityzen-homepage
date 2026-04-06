@@ -9,8 +9,7 @@ import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
 import type { MapFilter } from "@/components/home/CityStatusBanner";
 
-// ─── Mapbox token ────────────────────────────────────────────────────────────
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+import { getMapboxToken } from "@/lib/mapbox";
 
 // ─── Thunder Core API (proxied via Vite to avoid CORS) ───────────────────────
 const THUNDER_BASE = "/thunder-api";
@@ -404,6 +403,11 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   // ── Init map ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    let cancelled = false;
+
+    getMapboxToken().then((token) => {
+      if (cancelled || !mapContainerRef.current) return;
+      mapboxgl.accessToken = token;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
