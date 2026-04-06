@@ -272,6 +272,11 @@ const CityMap = () => {
 // ── Initialise map ──────────────────────────────────────────
 useEffect(() => {
   if (!mapContainerRef.current) return;
+  let cancelled = false;
+
+  getMapboxToken().then((token) => {
+    if (cancelled || !mapContainerRef.current) return;
+    mapboxgl.accessToken = token;
 
   // Start directly at the target position — no animation needed on init
   const map = new mapboxgl.Map({
