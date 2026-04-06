@@ -326,13 +326,17 @@ useEffect(() => {
   });
 
   mapRef.current = map;
+  }).catch((err) => console.error("[CityMap] Mapbox token error:", err));
 
   return () => {
+    cancelled = true;
     Object.values(markersRef.current).flat().forEach((m) => m.remove());
     markersRef.current = {};
     userMarkerRef.current?.remove();
-    map.remove();
-    mapRef.current = null;
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
     setMapLoaded(false);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
