@@ -63,7 +63,7 @@ const PublicHeader = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-0.5 shrink-0">
           <img src={cityzenLogo} alt="Cityzen" className="h-20 w-20 lg:h-[90px] lg:w-[90px] object-contain self-center translate-y-1" />
-          <span className="text-lg lg:text-xl font-extrabold text-primary -ml-3 -translate-y-0.5">CityZen</span>
+          <span className="text-lg lg:text-xl font-extrabold -ml-3 -translate-y-0.5" style={{ color: 'hsl(215, 30%, 34%)' }}>CityZen</span>
         </Link>
 
         {/* Desktop nav */}
