@@ -4,6 +4,7 @@ import { Menu, X, MapPin } from "lucide-react";
 import { useState } from "react";
 import cityzenLogo from "@/assets/cityzen-logo.png";
 import { useProvince } from "@/contexts/ProvinceContext";
+import { useDistricts, useSubdistricts } from "@/hooks/useLocationData";
 import {
   Select,
   SelectContent,
@@ -24,15 +25,36 @@ const navItems = [
 const PublicHeader = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { provinces, selectedProvince, setSelectedProvince, loading } = useProvince();
+  const {
+    provinces,
+    selectedProvince,
+    setSelectedProvince,
+    selectedDistrict,
+    setSelectedDistrict,
+    selectedSubdistrict,
+    setSelectedSubdistrict,
+    loading,
+  } = useProvince();
 
-  // แสดงเฉพาะจังหวัดที่เปิดใช้งาน
-  const ALLOWED_CODES = ["10", "20", "66"]; // กรุงเทพ, ชลบุรี, พิจิตร
+  const { data: districts = [], isLoading: districtsLoading } = useDistricts(selectedProvince?.id);
+  const { data: subdistricts = [], isLoading: subdistrictsLoading } = useSubdistricts(selectedDistrict?.id);
+
+  const ALLOWED_CODES = ["10", "20", "66"];
   const visibleProvinces = provinces.filter((p) => ALLOWED_CODES.includes(p.code ?? ""));
 
   const handleProvinceChange = (value: string) => {
     const province = provinces.find((p) => p.id === value);
     if (province) setSelectedProvince(province);
+  };
+
+  const handleDistrictChange = (value: string) => {
+    const district = districts.find((d) => d.id === value);
+    if (district) setSelectedDistrict(district);
+  };
+
+  const handleSubdistrictChange = (value: string) => {
+    const sub = subdistricts.find((s) => s.id === value);
+    if (sub) setSelectedSubdistrict(sub);
   };
 
   return (
@@ -65,21 +87,58 @@ const PublicHeader = () => {
           })}
         </nav>
 
-        {/* Province selector */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Location selectors + actions */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Province */}
           <Select
             value={selectedProvince?.id ?? ""}
             onValueChange={handleProvinceChange}
             disabled={loading}
           >
-            <SelectTrigger className="w-auto gap-2 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
+            <SelectTrigger className="w-auto gap-1.5 rounded-full border-border bg-secondary/50 px-3 py-1.5 h-9 text-sm font-medium">
               <MapPin className="h-3.5 w-3.5 text-accent shrink-0" />
-              <SelectValue placeholder={loading ? "กำลังโหลด..." : "เลือกจังหวัด"} />
+              <SelectValue placeholder={loading ? "กำลังโหลด..." : "จังหวัด"} />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               {visibleProvinces.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.name_th}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* District */}
+          <Select
+            value={selectedDistrict?.id ?? ""}
+            onValueChange={handleDistrictChange}
+            disabled={!selectedProvince || districtsLoading}
+          >
+            <SelectTrigger className="w-auto gap-1.5 rounded-full border-border bg-secondary/50 px-2.5 py-1.5 h-9 text-sm font-medium hidden lg:flex">
+              <SelectValue placeholder={districtsLoading ? "โหลด..." : "อำเภอ/เขต"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {districts.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name_th}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Subdistrict */}
+          <Select
+            value={selectedSubdistrict?.id ?? ""}
+            onValueChange={handleSubdistrictChange}
+            disabled={!selectedDistrict || subdistrictsLoading}
+          >
+            <SelectTrigger className="w-auto gap-1.5 rounded-full border-border bg-secondary/50 px-2.5 py-1.5 h-9 text-sm font-medium hidden lg:flex">
+              <SelectValue placeholder={subdistrictsLoading ? "โหลด..." : "ตำบล/แขวง"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {subdistricts.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name_th}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -104,6 +163,42 @@ const PublicHeader = () => {
       {/* Mobile dropdown */}
       {mobileOpen && (
         <nav className="lg:hidden border-t bg-card px-4 pb-4 pt-2 space-y-1">
+          {/* Mobile location selectors */}
+          <div className="flex gap-2 pb-2 border-b border-border mb-2">
+            <Select
+              value={selectedDistrict?.id ?? ""}
+              onValueChange={handleDistrictChange}
+              disabled={!selectedProvince || districtsLoading}
+            >
+              <SelectTrigger className="flex-1 h-9 text-sm rounded-lg">
+                <SelectValue placeholder="อำเภอ/เขต" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[250px]">
+                {districts.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name_th}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedSubdistrict?.id ?? ""}
+              onValueChange={handleSubdistrictChange}
+              disabled={!selectedDistrict || subdistrictsLoading}
+            >
+              <SelectTrigger className="flex-1 h-9 text-sm rounded-lg">
+                <SelectValue placeholder="ตำบล/แขวง" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[250px]">
+                {subdistricts.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name_th}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
