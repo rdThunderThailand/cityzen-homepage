@@ -12,7 +12,6 @@ import Volunteer from "./pages/Volunteer";
 import News from "./pages/News";
 import { Navigate } from "react-router-dom";
 import NotFound from "./pages/NotFound";
-import AlertMockup from "./pages/AlertMockup";
 import { ProvinceProvider } from "./contexts/ProvinceContext";
 
 const queryClient = new QueryClient();
@@ -26,7 +25,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/alert-mockup" element={<AlertMockup />} />
             <Route path="/map" element={<CityMap />} />
             <Route path="/report" element={<ReportProblem />} />
             <Route path="/help" element={<Help />} />
