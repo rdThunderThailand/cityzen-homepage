@@ -12,6 +12,7 @@ import Volunteer from "./pages/Volunteer";
 import News from "./pages/News";
 import { Navigate } from "react-router-dom";
 import NotFound from "./pages/NotFound";
+import DemoAlert from "./pages/DemoAlert";
 import { ProvinceProvider } from "./contexts/ProvinceContext";
 
 const queryClient = new QueryClient();
