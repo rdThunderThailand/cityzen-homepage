@@ -10,7 +10,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const token = Deno.env.get("MAPBOX_TOKEN");
+  let token = Deno.env.get("MAPBOX_TOKEN") ?? "";
+  
+  // Strip any accidental "KEY_NAME=" prefix the user may have pasted
+  const eqIdx = token.indexOf("=");
+  if (eqIdx !== -1 && token.substring(eqIdx + 1).startsWith("pk.")) {
+    token = token.substring(eqIdx + 1);
+  }
+
   if (!token) {
     return new Response(JSON.stringify({ error: "Token not configured" }), {
       status: 500,
