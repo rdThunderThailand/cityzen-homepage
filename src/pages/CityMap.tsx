@@ -54,8 +54,7 @@ async function fetchFuelStations(provinceName: string): Promise<FuelStation[]> {
   }
 }
 
-// ─── Token ──────────────────────────────────────────────────────────────────
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+import { getMapboxToken } from "@/lib/mapbox";
 
 // ─── Thailand GeoJSON ────────────────────────────────────────────────────────
 const THAILAND_GEOJSON_URL =
@@ -273,6 +272,11 @@ const CityMap = () => {
 // ── Initialise map ──────────────────────────────────────────
 useEffect(() => {
   if (!mapContainerRef.current) return;
+  let cancelled = false;
+
+  getMapboxToken().then((token) => {
+    if (cancelled || !mapContainerRef.current) return;
+    mapboxgl.accessToken = token;
 
   // Start directly at the target position — no animation needed on init
   const map = new mapboxgl.Map({
@@ -322,13 +326,17 @@ useEffect(() => {
   });
 
   mapRef.current = map;
+  }).catch((err) => console.error("[CityMap] Mapbox token error:", err));
 
   return () => {
+    cancelled = true;
     Object.values(markersRef.current).flat().forEach((m) => m.remove());
     markersRef.current = {};
     userMarkerRef.current?.remove();
-    map.remove();
-    mapRef.current = null;
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
     setMapLoaded(false);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -9,8 +9,7 @@ import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
 import type { MapFilter } from "@/components/home/CityStatusBanner";
 
-// ─── Mapbox token ────────────────────────────────────────────────────────────
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+import { getMapboxToken } from "@/lib/mapbox";
 
 // ─── Thunder Core API (proxied via Vite to avoid CORS) ───────────────────────
 const THUNDER_BASE = "/thunder-api";
@@ -404,6 +403,11 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   // ── Init map ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    let cancelled = false;
+
+    getMapboxToken().then((token) => {
+      if (cancelled || !mapContainerRef.current) return;
+      mapboxgl.accessToken = token;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
@@ -448,12 +452,17 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     });
 
     mapRef.current = map;
+    }).catch((err) => console.error("[CityMapPreview] Mapbox token error:", err));
+
     return () => {
+      cancelled = true;
       clearMarkers();
       mapLoadedRef.current = false;
       geojsonLoadedRef.current = false;
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
