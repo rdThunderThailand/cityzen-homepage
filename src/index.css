@@ -92,6 +92,51 @@
   }
 }
 
+  .theme-alert {
+    --background: 45 100% 96%;
+    --foreground: 40 50% 15%;
+
+    --card: 45 80% 98%;
+    --card-foreground: 40 50% 15%;
+
+    --popover: 45 80% 98%;
+    --popover-foreground: 40 50% 15%;
+
+    --primary: 40 90% 40%;
+    --primary-foreground: 45 100% 98%;
+
+    --secondary: 45 60% 90%;
+    --secondary-foreground: 40 50% 20%;
+
+    --muted: 45 40% 92%;
+    --muted-foreground: 40 30% 40%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 42 50% 82%;
+    --input: 42 50% 82%;
+    --ring: 40 90% 40%;
+
+    --sidebar-background: 40 60% 20%;
+    --sidebar-foreground: 45 60% 95%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 50% 28%;
+    --sidebar-accent-foreground: 45 60% 95%;
+    --sidebar-border: 40 40% 30%;
+    --sidebar-ring: 38 92% 50%;
+  }
+
 @layer base {
   * {
     @apply border-border;
