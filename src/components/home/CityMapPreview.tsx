@@ -452,12 +452,17 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     });
 
     mapRef.current = map;
+    }).catch((err) => console.error("[CityMapPreview] Mapbox token error:", err));
+
     return () => {
+      cancelled = true;
       clearMarkers();
       mapLoadedRef.current = false;
       geojsonLoadedRef.current = false;
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
