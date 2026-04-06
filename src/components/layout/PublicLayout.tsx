@@ -5,12 +5,14 @@ import Footer from "./Footer";
 
 interface PublicLayoutProps {
   children: ReactNode;
+  topBanner?: ReactNode;
 }
 
-const PublicLayout = ({ children }: PublicLayoutProps) => {
+const PublicLayout = ({ children, topBanner }: PublicLayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <PublicHeader />
+      {topBanner}
       <main className="flex-1 pb-20 lg:pb-8">{children}</main>
       <Footer />
       <MobileBottomNav />
