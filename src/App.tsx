@@ -12,6 +12,7 @@ import Volunteer from "./pages/Volunteer";
 import News from "./pages/News";
 import { Navigate } from "react-router-dom";
 import NotFound from "./pages/NotFound";
+import DemoAlert from "./pages/DemoAlert";
 import { ProvinceProvider } from "./contexts/ProvinceContext";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/me" element={<MyPage />} />
             <Route path="/volunteer" element={<Volunteer />} />
             <Route path="/news" element={<News />} />
+            <Route path="/demo-alert" element={<DemoAlert />} />
             <Route path="/events" element={<Navigate to="/news" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
