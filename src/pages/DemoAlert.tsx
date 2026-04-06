@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import PublicLayout from "@/components/layout/PublicLayout";
 import CityStatusBanner, { type MapFilter } from "@/components/home/CityStatusBanner";
 import CityMapPreview from "@/components/home/CityMapPreview";
@@ -13,12 +14,12 @@ const DemoAlert = () => {
       <PublicLayout>
         <div className="container py-4 lg:py-6 space-y-4 lg:space-y-6">
           {/* Alert Banner */}
-          <div className="rounded-2xl border-2 border-warning bg-warning/10 px-4 py-3 flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-warning text-warning-foreground font-bold text-lg">!</span>
-            <div>
-              <p className="text-sm font-bold text-foreground">สถานะ: เฝ้าระวัง (ALERT)</p>
-              <p className="text-xs text-muted-foreground">ระบบตรวจพบสถานการณ์ที่ต้องเฝ้าระวังในพื้นที่</p>
-            </div>
+          <div className="rounded-2xl bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 px-6 py-4 flex items-center justify-center gap-3 shadow-sm">
+            <AlertTriangle className="h-7 w-7 text-warning flex-shrink-0" />
+            <p className="text-base lg:text-lg text-foreground text-center">
+              <span className="font-bold">เมืองเริ่มมีข้อจำกัดพลังงาน</span>{" "}
+              <span className="font-normal">ปรอดางแผนการใช้งาน</span>
+            </p>
           </div>
 
           <CityStatusBanner activeFilter={activeFilter} onFilterChange={setActiveFilter} />
