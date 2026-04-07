@@ -38,32 +38,32 @@ function getThunderSupabase() {
   return _thunderSupabase;
 }
 
-// ─── REST fetch ───────────────────────────────────────────────────────────────
+// ─── Fetch scenario directly from Thunder Core Supabase (avoids CORS) ────────
 async function fetchScenario(): Promise<ScenarioState> {
-  const baseUrl = import.meta.env.VITE_THUNDER_CORE_BASE_URL;
-  const appId   = import.meta.env.VITE_THUNDER_APP_ID;
-  const apiKey  = import.meta.env.VITE_THUNDER_APP_API_KEY;
+  const appId = import.meta.env.VITE_THUNDER_APP_ID;
+  const client = getThunderSupabase();
 
-  if (!baseUrl || !appId || !apiKey) {
+  if (!appId || !client) {
     return { level: "normal", metadata: {}, updatedAt: null, isLoading: false };
   }
 
   try {
-    const res = await fetch(`${baseUrl}/api/applications/${appId}/scenario`, {
-      headers: { "apikey": apiKey },
-      // Prevent browser & CDN caching so we always get fresh data
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const { data, error } = await (client as any)
+      .from("applications")
+      .select("scenario_level, scenario_metadata, scenario_updated_at")
+      .eq("id", appId)
+      .single();
+
+    if (error || !data) throw error ?? new Error("No data");
+
     return {
       level: (data.scenario_level as ScenarioLevel) ?? "normal",
       metadata: (data.scenario_metadata as ScenarioMetadata) ?? {},
-      updatedAt: data.scenario_updated_at ?? null,
+      updatedAt: (data.scenario_updated_at as string) ?? null,
       isLoading: false,
     };
   } catch (e) {
-    console.warn("[ScenarioContext] fetch failed, defaulting to normal:", e);
+    console.warn("[ScenarioContext] Supabase fetch failed:", e);
     return { level: "normal", metadata: {}, updatedAt: null, isLoading: false };
   }
 }
