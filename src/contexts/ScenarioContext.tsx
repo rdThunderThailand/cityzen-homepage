@@ -25,7 +25,7 @@ export interface ScenarioState {
   isLoading: boolean;
 }
 
-// ─── Thunder Core Supabase client (lazy — only init when env vars exist) ──────
+// ─── Thunder Core Supabase client (lazy) ──────────────────────────────────────
 let _thunderSupabase: ReturnType<typeof createClient> | null = null;
 
 function getThunderSupabase() {
@@ -51,6 +51,8 @@ async function fetchScenario(): Promise<ScenarioState> {
   try {
     const res = await fetch(`${baseUrl}/api/applications/${appId}/scenario`, {
       headers: { "X-Api-Key": apiKey },
+      // Prevent browser & CDN caching so we always get fresh data
+      cache: "no-store",
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -94,12 +96,22 @@ export const ScenarioProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  // Initial REST fetch on mount
-  useEffect(() => {
+  const refresh = useCallback(() => {
     fetchScenario().then(setState);
   }, []);
 
-  // Supabase Realtime subscription for live updates
+  // ── 1. Initial fetch on mount ────────────────────────────────────────────
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // ── 2. Polling every 30s as primary fallback ─────────────────────────────
+  useEffect(() => {
+    const timer = setInterval(refresh, 30_000);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
+  // ── 3. Supabase Realtime for instant updates ─────────────────────────────
   useEffect(() => {
     const appId = import.meta.env.VITE_THUNDER_APP_ID;
     const client = getThunderSupabase();
@@ -116,18 +128,23 @@ export const ScenarioProvider = ({ children }: { children: ReactNode }) => {
           filter: `id=eq.${appId}`,
         },
         (payload) => {
-          console.log("[ScenarioContext] Realtime update:", payload.new);
+          console.log("[ScenarioContext] Realtime update received:", payload.new);
           applyPayload(payload.new as Record<string, unknown>);
         }
       )
-      .subscribe((status) => {
-        console.log("[ScenarioContext] Realtime status:", status);
+      .subscribe((status, err) => {
+        console.log("[ScenarioContext] Realtime status:", status, err ?? "");
+        // If Realtime fails, immediately do a REST poll
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("[ScenarioContext] Realtime failed, falling back to poll");
+          refresh();
+        }
       });
 
     return () => {
       client.removeChannel(channel);
     };
-  }, [applyPayload]);
+  }, [applyPayload, refresh]);
 
   return (
     <ScenarioContext.Provider value={state}>
