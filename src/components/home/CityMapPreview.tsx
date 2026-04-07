@@ -8,6 +8,7 @@ import {
 import { Link } from "react-router-dom";
 import { useProvince } from "@/contexts/ProvinceContext";
 import type { MapFilter } from "@/components/home/CityStatusBanner";
+import { useScenario } from "@/contexts/ScenarioContext";
 
 import { getMapboxToken } from "@/lib/mapbox";
 
@@ -409,6 +410,7 @@ interface CityMapPreviewProps { activeFilter?: MapFilter; }
 // ─── Main Component ───────────────────────────────────────────────────────────
 const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   const { selectedProvince, selectedDistrict, selectedSubdistrict } = useProvince();
+  const { level: scenarioLevel } = useScenario();
   const mapContainerRef  = useRef<HTMLDivElement>(null);
   const mapRef           = useRef<mapboxgl.Map | null>(null);
   const markersRef       = useRef<mapboxgl.Marker[]>([]);
@@ -449,6 +451,13 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
       pitch: 40,
       bearing: -10,
       attributionControl: false,
+      transformRequest: (url, resourceType) => {
+        // Suppress ad-blocker ERR_CONNECTION_REFUSED console logs for Mapbox telemetry
+        if (url.includes("events.mapbox.com")) {
+          return { url: 'data:application/json,{"status":"ignored"}' };
+        }
+        return { url };
+      },
     });
 
     // Enable 3D objects (buildings)
@@ -694,7 +703,33 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
 
       {/* Map container */}
       <div className="aspect-[16/7] w-full relative">
-        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
+        <div
+          ref={mapContainerRef}
+          className="absolute inset-0 w-full h-full"
+          style={{
+            filter:
+              scenarioLevel === "crisis" ? "saturate(0.45) brightness(0.85)" :
+              scenarioLevel === "lockdown" ? "grayscale(0.9) brightness(0.5)" :
+              scenarioLevel === "watch" ? "saturate(0.7)" :
+              "none",
+            transition: "filter 1.2s ease",
+          }}
+        />
+
+        {/* Scenario color tint */}
+        {scenarioLevel !== "normal" && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10"
+            style={{
+              background:
+                scenarioLevel === "crisis" ? "rgba(220,38,38,0.12)" :
+                scenarioLevel === "lockdown" ? "rgba(0,0,0,0.35)" :
+                scenarioLevel === "watch" ? "rgba(245,158,11,0.08)" :
+                "transparent",
+              transition: "background 1.2s ease",
+            }}
+          />
+        )}
 
         {/* Station modal (React overlay, not Mapbox popup) */}
         {selectedStation && (

@@ -3,6 +3,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { useProvince } from "@/contexts/ProvinceContext";
+import { useScenario } from "@/contexts/ScenarioContext";
 import {
   Hospital,
   Fuel,
@@ -198,6 +199,7 @@ const CATEGORIES: Category[] = [
 // ─── Component ───────────────────────────────────────────────────────────────
 const CityMap = () => {
   const { selectedProvince, selectedDistrict, selectedSubdistrict } = useProvince();
+  const { level: scenarioLevel } = useScenario();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Record<string, mapboxgl.Marker[]>>({});
@@ -307,6 +309,13 @@ useEffect(() => {
     pitch: 45,
     bearing: -10,
     attributionControl: false,
+    transformRequest: (url, resourceType) => {
+      // Suppress ad-blocker ERR_CONNECTION_REFUSED console logs for Mapbox telemetry
+      if (url.includes("events.mapbox.com")) {
+        return { url: 'data:application/json,{"status":"ignored"}' };
+      }
+      return { url };
+    },
   });
 
   map.on("style.load", () => {
@@ -684,7 +693,33 @@ useEffect(() => {
       <div className="relative w-full" style={{ height: "calc(100vh - 57px)" }}>
 
         {/* ── Full-screen map ───────────────────────────────────────────── */}
-        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
+        <div
+          ref={mapContainerRef}
+          className="absolute inset-0 w-full h-full"
+          style={{
+            filter:
+              scenarioLevel === "crisis" ? "saturate(0.45) brightness(0.85)" :
+              scenarioLevel === "lockdown" ? "grayscale(0.9) brightness(0.5)" :
+              scenarioLevel === "watch" ? "saturate(0.7)" :
+              "none",
+            transition: "filter 1.2s ease",
+          }}
+        />
+
+        {/* ── Scenario color overlay on map ──────────────────────────────── */}
+        {scenarioLevel !== "normal" && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10"
+            style={{
+              background:
+                scenarioLevel === "crisis" ? "rgba(220,38,38,0.12)" :
+                scenarioLevel === "lockdown" ? "rgba(0,0,0,0.35)" :
+                scenarioLevel === "watch" ? "rgba(245,158,11,0.08)" :
+                "transparent",
+              transition: "background 1.2s ease",
+            }}
+          />
+        )}
 
         {/* ── Search bar ───────────────────────────────────────────────── */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">
