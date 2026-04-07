@@ -147,3 +147,9 @@
     font-family: 'Noto Sans Thai', sans-serif;
   }
 }
+
+/* Hide Mapbox logo and attribution globally */
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}

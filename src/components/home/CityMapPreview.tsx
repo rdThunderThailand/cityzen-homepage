@@ -18,6 +18,12 @@ const THUNDER_BASE = "/thunder-api";
 const THAILAND_GEOJSON_URL =
   "https://raw.githubusercontent.com/apisit/thailand.json/master/thailand.json";
 
+const DISTRICT_GEOJSON_URL =
+  "https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/districts.geojson";
+
+const SUBDISTRICT_GEOJSON_URL =
+  "https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/subdistricts.geojson";
+
 // ─── Province code → GeoJSON name ────────────────────────────────────────────
 const provinceCodeToName: Record<string, string> = {
   "10": "Bangkok Metropolis", "11": "Samut Prakan", "12": "Nonthaburi",
@@ -367,16 +373,51 @@ const SOURCE_ID   = "province-boundary";
 const FILL_LAYER  = "province-fill";
 const LINE_LAYER  = "province-line";
 
+const GEO_DISTRICT_SOURCE = "district-boundary";
+const GEO_DISTRICT_FILL = "district-fill";
+const GEO_DISTRICT_LINE = "district-line";
+
+const GEO_SUBDISTRICT_SOURCE = "subdistrict-boundary";
+const GEO_SUBDISTRICT_FILL = "subdistrict-fill";
+const GEO_SUBDISTRICT_LINE = "subdistrict-line";
+
+const getBBox = (geometry: any): [number, number, number, number] => {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const update = (coord: any) => {
+    if (coord[0] < minX) minX = coord[0];
+    if (coord[0] > maxX) maxX = coord[0];
+    if (coord[1] < minY) minY = coord[1];
+    if (coord[1] > maxY) maxY = coord[1];
+  };
+  const flat = (arr: any[]) => {
+    if (typeof arr[0] === 'number') update(arr);
+    else arr.forEach(flat);
+  };
+  flat(geometry.coordinates);
+  return [minX, minY, maxX, maxY];
+};
+
+const matchRegionName = (geoName: string, dbName: string) => {
+  if (!geoName || !dbName) return false;
+  const cleanGeo = geoName.replace(/^(เขต|อำเภอ|แขวง|ตำบล|\s+)+/g, '').trim();
+  const cleanDb = dbName.replace(/^(เขต|อำเภอ|แขวง|ตำบล|\s+)+/g, '').trim();
+  return cleanGeo === cleanDb;
+};
+
 interface CityMapPreviewProps { activeFilter?: MapFilter; }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
-  const { selectedProvince } = useProvince();
+  const { selectedProvince, selectedDistrict, selectedSubdistrict } = useProvince();
   const mapContainerRef  = useRef<HTMLDivElement>(null);
   const mapRef           = useRef<mapboxgl.Map | null>(null);
   const markersRef       = useRef<mapboxgl.Marker[]>([]);
   const mapLoadedRef     = useRef(false);
   const geojsonLoadedRef = useRef(false);
+
+  const provinceGeoJsonRef = useRef<any>(null);
+  const districtGeoJsonRef = useRef<any>(null);
+  const subdistrictGeoJsonRef = useRef<any>(null);
 
   const [loadingStations, setLoadingStations] = useState(false);
   const [stationCount, setStationCount]       = useState<number | null>(null);
@@ -385,15 +426,6 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   const coords = selectedProvince?.code
     ? provinceCoords[selectedProvince.code] || DEFAULT_COORDS
     : DEFAULT_COORDS;
-
-  // ── Province border filter ───────────────────────────────────────────────
-  const applyProvinceFilter = useCallback((name: string | null) => {
-    const map = mapRef.current;
-    if (!map || !mapLoadedRef.current || !geojsonLoadedRef.current) return;
-    const f = name ? ["==", ["get", "name"], name] : ["==", "name", "__none__"];
-    if (map.getLayer(FILL_LAYER)) map.setFilter(FILL_LAYER, f);
-    if (map.getLayer(LINE_LAYER)) map.setFilter(LINE_LAYER, f);
-  }, []);
 
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach((m) => m.remove());
@@ -431,8 +463,19 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     map.on("load", async () => {
       mapLoadedRef.current = true;
       try {
-        const res = await fetch(THAILAND_GEOJSON_URL);
-        const geojson = await res.json();
+        const [resProv, resDist, resSubDist] = await Promise.all([
+          fetch(THAILAND_GEOJSON_URL),
+          fetch(DISTRICT_GEOJSON_URL),
+          fetch(SUBDISTRICT_GEOJSON_URL)
+        ]);
+        const geojson = await resProv.json();
+        const distGeojson = await resDist.json();
+        const subDistGeojson = await resSubDist.json();
+        
+        provinceGeoJsonRef.current = geojson;
+        districtGeoJsonRef.current = distGeojson;
+        subdistrictGeoJsonRef.current = subDistGeojson;
+
         map.addSource(SOURCE_ID, { type: "geojson", data: geojson });
         map.addLayer({
           id: FILL_LAYER, type: "fill", source: SOURCE_ID,
@@ -444,11 +487,37 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
           paint: { "line-color": "#FACC15", "line-width": 3, "line-opacity": 0.95 },
           filter: ["==", "name", "__none__"],
         });
+
+        map.addSource(GEO_DISTRICT_SOURCE, { type: "geojson", data: distGeojson });
+        map.addLayer({
+          id: GEO_DISTRICT_FILL, type: "fill", source: GEO_DISTRICT_SOURCE,
+          paint: { "fill-color": "#3B82F6", "fill-opacity": 0.15 },
+          filter: ["==", "name", "__none__"],
+        });
+        map.addLayer({
+          id: GEO_DISTRICT_LINE, type: "line", source: GEO_DISTRICT_SOURCE,
+          paint: { "line-color": "#3B82F6", "line-width": 3, "line-opacity": 0.95 },
+          filter: ["==", "name", "__none__"],
+        });
+
+        map.addSource(GEO_SUBDISTRICT_SOURCE, { type: "geojson", data: subDistGeojson });
+        map.addLayer({
+          id: GEO_SUBDISTRICT_FILL, type: "fill", source: GEO_SUBDISTRICT_SOURCE,
+          paint: { "fill-color": "#10B981", "fill-opacity": 0.15 },
+          filter: ["==", "name", "__none__"],
+        });
+        map.addLayer({
+          id: GEO_SUBDISTRICT_LINE, type: "line", source: GEO_SUBDISTRICT_SOURCE,
+          paint: { "line-color": "#10B981", "line-width": 3, "line-opacity": 0.95 },
+          filter: ["==", "name", "__none__"],
+        });
+
         geojsonLoadedRef.current = true;
-        const code = selectedProvince?.code ?? null;
-        const geoName = code ? provinceCodeToName[code] ?? null : null;
-        applyProvinceFilter(geoName);
-      } catch { /* ignore */ }
+        // Since refs don't trigger re-render, we force an update
+        setStationCount(v => v);
+      } catch (e) {
+        console.warn("[CityMapPreview] GeoJSON failed:", e);
+      }
     });
 
     mapRef.current = map;
@@ -467,21 +536,94 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Fly + border on province change ─────────────────────────────────────
+  // ── Fly + border on region change ─────────────────────────────────────
   useEffect(() => {
-    if (!mapRef.current) return;
-    mapRef.current.flyTo({
-      center: [coords.lng, coords.lat],
-      zoom: 14,
-      pitch: 50,
-      bearing: -10,
-      speed: 1.2,
-      curve: 2.5, // สูงกว่าปกติเพื่อให้ซูมออกเยอะๆ (zoom out then in)
-      essential: true,
-    });
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current || !geojsonLoadedRef.current) return;
+
     const code = selectedProvince?.code ?? null;
-    applyProvinceFilter(code ? provinceCodeToName[code] ?? null : null);
-  }, [coords.lat, coords.lng, selectedProvince?.code, applyProvinceFilter]);
+    const geoName = code ? provinceCodeToName[code] ?? null : null;
+
+    let featureToFit = null;
+
+    // Reset all filters first
+    if (map.getLayer(FILL_LAYER)) map.setFilter(FILL_LAYER, ["==", "name", "__none__"]);
+    if (map.getLayer(LINE_LAYER)) map.setFilter(LINE_LAYER, ["==", "name", "__none__"]);
+    if (map.getLayer(GEO_DISTRICT_FILL)) map.setFilter(GEO_DISTRICT_FILL, ["==", "name", "__none__"]);
+    if (map.getLayer(GEO_DISTRICT_LINE)) map.setFilter(GEO_DISTRICT_LINE, ["==", "name", "__none__"]);
+    if (map.getLayer(GEO_SUBDISTRICT_FILL)) map.setFilter(GEO_SUBDISTRICT_FILL, ["==", "name", "__none__"]);
+    if (map.getLayer(GEO_SUBDISTRICT_LINE)) map.setFilter(GEO_SUBDISTRICT_LINE, ["==", "name", "__none__"]);
+
+    if (selectedSubdistrict && selectedDistrict && selectedProvince) {
+      if (subdistrictGeoJsonRef.current) {
+        featureToFit = subdistrictGeoJsonRef.current.features.find(
+          (f: any) => 
+            matchRegionName(f.properties.tam_th, selectedSubdistrict.name_th) && 
+            matchRegionName(f.properties.amp_th, selectedDistrict.name_th) && 
+            f.properties.pro_code === selectedProvince.code
+        );
+      }
+      if (featureToFit) {
+        const subDistFilter = [
+          "all",
+          ["==", ["get", "tam_th"], featureToFit.properties.tam_th],
+          ["==", ["get", "amp_th"], featureToFit.properties.amp_th],
+          ["==", ["get", "pro_code"], featureToFit.properties.pro_code]
+        ];
+        if (map.getLayer(GEO_SUBDISTRICT_FILL)) map.setFilter(GEO_SUBDISTRICT_FILL, subDistFilter);
+        if (map.getLayer(GEO_SUBDISTRICT_LINE)) map.setFilter(GEO_SUBDISTRICT_LINE, subDistFilter);
+      }
+    } else if (selectedDistrict && selectedProvince) {
+      if (districtGeoJsonRef.current) {
+        featureToFit = districtGeoJsonRef.current.features.find(
+          (f: any) => 
+            matchRegionName(f.properties.amp_th, selectedDistrict.name_th) && 
+            f.properties.pro_code === selectedProvince.code
+        );
+      }
+      if (featureToFit) {
+        const distFilter = [
+          "all", 
+          ["==", ["get", "amp_th"], featureToFit.properties.amp_th],
+          ["==", ["get", "pro_code"], featureToFit.properties.pro_code]
+        ];
+        if (map.getLayer(GEO_DISTRICT_FILL)) map.setFilter(GEO_DISTRICT_FILL, distFilter);
+        if (map.getLayer(GEO_DISTRICT_LINE)) map.setFilter(GEO_DISTRICT_LINE, distFilter);
+      }
+    } else {
+      const provFilter = geoName ? ["==", ["get", "name"], geoName] : ["==", "name", "__none__"];
+      if (map.getLayer(FILL_LAYER)) map.setFilter(FILL_LAYER, provFilter);
+      if (map.getLayer(LINE_LAYER)) map.setFilter(LINE_LAYER, provFilter);
+
+      if (geoName && provinceGeoJsonRef.current) {
+        featureToFit = provinceGeoJsonRef.current.features.find(
+          (f: any) => f.properties.name === geoName
+        );
+      }
+    }
+
+    if (featureToFit) {
+      const bbox = getBBox(featureToFit.geometry);
+      map.fitBounds(bbox, {
+        padding: 40,
+        pitch: 50,
+        bearing: -10,
+        speed: 1.2,
+        curve: 2.5,
+        essential: true,
+      });
+    } else {
+      map.flyTo({
+        center: [coords.lng, coords.lat],
+        zoom: 14,
+        pitch: 50,
+        bearing: -10,
+        speed: 1.2,
+        curve: 2.5,
+        essential: true,
+      });
+    }
+  }, [coords.lat, coords.lng, selectedProvince, selectedDistrict, selectedSubdistrict]);
 
   // ── Fetch & plot fuel markers ────────────────────────────────────────────
   useEffect(() => {

@@ -60,6 +60,13 @@ import { getMapboxToken } from "@/lib/mapbox";
 const THAILAND_GEOJSON_URL =
   "https://raw.githubusercontent.com/apisit/thailand.json/master/thailand.json";
 
+const DISTRICT_GEOJSON_URL =
+  "https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/districts.geojson";
+
+const SUBDISTRICT_GEOJSON_URL =
+  "https://raw.githubusercontent.com/chingchai/OpenGISData-Thailand/master/subdistricts.geojson";
+
+
 // ─── Province code → GeoJSON name ────────────────────────────────────────────
 const provinceCodeToName: Record<string, string> = {
   "10": "Bangkok Metropolis", "11": "Samut Prakan", "12": "Nonthaburi",
@@ -87,6 +94,15 @@ const provinceCodeToName: Record<string, string> = {
 const GEO_SOURCE  = "province-boundary";
 const GEO_FILL   = "province-fill";
 const GEO_LINE   = "province-line";
+
+const GEO_DISTRICT_SOURCE = "district-boundary";
+const GEO_DISTRICT_FILL = "district-fill";
+const GEO_DISTRICT_LINE = "district-line";
+
+const GEO_SUBDISTRICT_SOURCE = "subdistrict-boundary";
+const GEO_SUBDISTRICT_FILL = "subdistrict-fill";
+const GEO_SUBDISTRICT_LINE = "subdistrict-line";
+
 
 // ─── Province coordinates ───────────────────────────────────────────────────
 const provinceCoords: Record<string, { lat: number; lng: number }> = {
@@ -181,7 +197,7 @@ const CATEGORIES: Category[] = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 const CityMap = () => {
-  const { selectedProvince } = useProvince();
+  const { selectedProvince, selectedDistrict, selectedSubdistrict } = useProvince();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Record<string, mapboxgl.Marker[]>>({});
@@ -195,6 +211,10 @@ const CityMap = () => {
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [selectedStation, setSelectedStation] = useState<FuelStation | null>(null);
   const [fuelStationCount, setFuelStationCount] = useState<number>(0);
+  
+  const provinceGeoJsonRef = useRef<any>(null);
+  const districtGeoJsonRef = useRef<any>(null);
+  const subdistrictGeoJsonRef = useRef<any>(null);
 
   const coords = selectedProvince?.code
     ? provinceCoords[selectedProvince.code] || DEFAULT_COORDS
@@ -300,22 +320,54 @@ useEffect(() => {
   map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }), "bottom-right");
 
   map.on("load", async () => {
-    // ── Load Thailand GeoJSON for province borders ──────────────────────────
+    // ── Load Thailand GeoJSON for province, district and subdistrict borders ─────────────
     try {
-      const res = await fetch(THAILAND_GEOJSON_URL);
-      const geojson = await res.json();
+      const [resProv, resDist, resSubDist] = await Promise.all([
+        fetch(THAILAND_GEOJSON_URL),
+        fetch(DISTRICT_GEOJSON_URL),
+        fetch(SUBDISTRICT_GEOJSON_URL)
+      ]);
+      const geojson = await resProv.json();
+      const distGeojson = await resDist.json();
+      const subDistGeojson = await resSubDist.json();
+      
+      provinceGeoJsonRef.current = geojson;
+      districtGeoJsonRef.current = distGeojson;
+      subdistrictGeoJsonRef.current = subDistGeojson;
 
       map.addSource(GEO_SOURCE, { type: "geojson", data: geojson });
-
       map.addLayer({
         id: GEO_FILL, type: "fill", source: GEO_SOURCE,
         paint: { "fill-color": "#FACC15", "fill-opacity": 0.12 },
         filter: ["==", "name", "__none__"],
       });
-
       map.addLayer({
         id: GEO_LINE, type: "line", source: GEO_SOURCE,
         paint: { "line-color": "#FACC15", "line-width": 3, "line-opacity": 0.95 },
+        filter: ["==", "name", "__none__"],
+      });
+
+      map.addSource(GEO_DISTRICT_SOURCE, { type: "geojson", data: distGeojson });
+      map.addLayer({
+        id: GEO_DISTRICT_FILL, type: "fill", source: GEO_DISTRICT_SOURCE,
+        paint: { "fill-color": "#3B82F6", "fill-opacity": 0.15 },
+        filter: ["==", "name", "__none__"],
+      });
+      map.addLayer({
+        id: GEO_DISTRICT_LINE, type: "line", source: GEO_DISTRICT_SOURCE,
+        paint: { "line-color": "#3B82F6", "line-width": 3, "line-opacity": 0.95 },
+        filter: ["==", "name", "__none__"],
+      });
+
+      map.addSource(GEO_SUBDISTRICT_SOURCE, { type: "geojson", data: subDistGeojson });
+      map.addLayer({
+        id: GEO_SUBDISTRICT_FILL, type: "fill", source: GEO_SUBDISTRICT_SOURCE,
+        paint: { "fill-color": "#10B981", "fill-opacity": 0.15 },
+        filter: ["==", "name", "__none__"],
+      });
+      map.addLayer({
+        id: GEO_SUBDISTRICT_LINE, type: "line", source: GEO_SUBDISTRICT_SOURCE,
+        paint: { "line-color": "#10B981", "line-width": 3, "line-opacity": 0.95 },
         filter: ["==", "name", "__none__"],
       });
     } catch (e) {
@@ -342,43 +394,135 @@ useEffect(() => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 
-// ── Apply province border when mapLoaded or selectedProvince changes ─────────
+// ── Apply border & Animation ─────────────────────────────────────────────────
+const getBBox = (geometry: any): [number, number, number, number] => {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const update = (coord: any) => {
+    if (coord[0] < minX) minX = coord[0];
+    if (coord[0] > maxX) maxX = coord[0];
+    if (coord[1] < minY) minY = coord[1];
+    if (coord[1] > maxY) maxY = coord[1];
+  };
+  const flat = (arr: any[]) => {
+    if (typeof arr[0] === 'number') update(arr);
+    else arr.forEach(flat);
+  };
+  flat(geometry.coordinates);
+  return [minX, minY, maxX, maxY];
+};
+
+const matchRegionName = (geoName: string, dbName: string) => {
+  if (!geoName || !dbName) return false;
+  const cleanGeo = geoName.replace(/^(เขต|อำเภอ|แขวง|ตำบล|\s+)+/g, '').trim();
+  const cleanDb = dbName.replace(/^(เขต|อำเภอ|แขวง|ตำบล|\s+)+/g, '').trim();
+  return cleanGeo === cleanDb;
+};
+
 useEffect(() => {
   const map = mapRef.current;
   if (!map || !mapLoaded) return;
   const code = selectedProvince?.code ?? null;
   const geoName = code ? provinceCodeToName[code] ?? null : null;
-  const filter = geoName ? ["==", ["get", "name"], geoName] : ["==", "name", "__none__"];
-  if (map.getLayer(GEO_FILL)) map.setFilter(GEO_FILL, filter);
-  if (map.getLayer(GEO_LINE)) map.setFilter(GEO_LINE, filter);
-}, [mapLoaded, selectedProvince]);
 
-// ── Animation when province changes ─────────────────────────────────────────
-useEffect(() => {
-  if (!mapRef.current) return;
+  // 1. Borders
+  let featureToFit = null;
 
-  // Use flyTo with a high curve to create a "zoom out and fly" effect
-  mapRef.current.flyTo({
-    center: [coords.lng, coords.lat],
-    zoom: 14,
-    pitch: 45,
-    bearing: -10,
-    speed: 1.2,
-    curve: 2.5, // สูงกว่าปกติ (default 1.42) เพื่อให้เห็นการซูมออกชัดเจน
-    essential: true,
-  });
+  // Reset all filters first
+  if (map.getLayer(GEO_FILL)) map.setFilter(GEO_FILL, ["==", "name", "__none__"]);
+  if (map.getLayer(GEO_LINE)) map.setFilter(GEO_LINE, ["==", "name", "__none__"]);
+  if (map.getLayer(GEO_DISTRICT_FILL)) map.setFilter(GEO_DISTRICT_FILL, ["==", "name", "__none__"]);
+  if (map.getLayer(GEO_DISTRICT_LINE)) map.setFilter(GEO_DISTRICT_LINE, ["==", "name", "__none__"]);
+  if (map.getLayer(GEO_SUBDISTRICT_FILL)) map.setFilter(GEO_SUBDISTRICT_FILL, ["==", "name", "__none__"]);
+  if (map.getLayer(GEO_SUBDISTRICT_LINE)) map.setFilter(GEO_SUBDISTRICT_LINE, ["==", "name", "__none__"]);
 
-  if (mapLoaded) {
-    CATEGORIES.forEach((cat) => {
-      if (cat.id === "fuel") {
-        renderFuelMarkers(activeLayers.has(cat.id));
-      } else {
-        renderMarkers(cat.id, activeLayers.has(cat.id), coords);
-      }
+  if (selectedSubdistrict && selectedDistrict && selectedProvince) {
+    if (subdistrictGeoJsonRef.current) {
+      featureToFit = subdistrictGeoJsonRef.current.features.find(
+        (f: any) => 
+          matchRegionName(f.properties.tam_th, selectedSubdistrict.name_th) && 
+          matchRegionName(f.properties.amp_th, selectedDistrict.name_th) && 
+          f.properties.pro_code === selectedProvince.code
+      );
+    }
+
+    if (featureToFit) {
+      const subDistFilter = [
+        "all",
+        ["==", ["get", "tam_th"], featureToFit.properties.tam_th],
+        ["==", ["get", "amp_th"], featureToFit.properties.amp_th],
+        ["==", ["get", "pro_code"], featureToFit.properties.pro_code]
+      ];
+      if (map.getLayer(GEO_SUBDISTRICT_FILL)) map.setFilter(GEO_SUBDISTRICT_FILL, subDistFilter);
+      if (map.getLayer(GEO_SUBDISTRICT_LINE)) map.setFilter(GEO_SUBDISTRICT_LINE, subDistFilter);
+    }
+  } else if (selectedDistrict && selectedProvince) {
+    if (districtGeoJsonRef.current) {
+      featureToFit = districtGeoJsonRef.current.features.find(
+        (f: any) => 
+          matchRegionName(f.properties.amp_th, selectedDistrict.name_th) && 
+          f.properties.pro_code === selectedProvince.code
+      );
+    }
+
+    if (featureToFit) {
+      const distFilter = [
+        "all", 
+        ["==", ["get", "amp_th"], featureToFit.properties.amp_th],
+        ["==", ["get", "pro_code"], featureToFit.properties.pro_code]
+      ];
+      if (map.getLayer(GEO_DISTRICT_FILL)) map.setFilter(GEO_DISTRICT_FILL, distFilter);
+      if (map.getLayer(GEO_DISTRICT_LINE)) map.setFilter(GEO_DISTRICT_LINE, distFilter);
+    }
+  } else {
+    const provFilter = geoName ? ["==", ["get", "name"], geoName] : ["==", "name", "__none__"];
+    if (map.getLayer(GEO_FILL)) map.setFilter(GEO_FILL, provFilter);
+    if (map.getLayer(GEO_LINE)) map.setFilter(GEO_LINE, provFilter);
+
+    if (geoName && provinceGeoJsonRef.current) {
+      featureToFit = provinceGeoJsonRef.current.features.find(
+        (f: any) => f.properties.name === geoName
+      );
+    }
+  }
+
+  // 2. Camera movement
+  const resolvedCoords = { ...coords };
+  if (featureToFit) {
+    const bbox = getBBox(featureToFit.geometry);
+    resolvedCoords.lng = (bbox[0] + bbox[2]) / 2;
+    resolvedCoords.lat = (bbox[1] + bbox[3]) / 2;
+    
+    map.fitBounds(bbox, {
+      padding: 60,
+      pitch: 45,
+      bearing: -10,
+      speed: 1.2,
+      curve: 2.5,
+      essential: true,
+      easing: (t) => t * (2 - t)
+    });
+  } else {
+    map.flyTo({
+      center: [resolvedCoords.lng, resolvedCoords.lat],
+      zoom: 14,
+      pitch: 45,
+      bearing: -10,
+      speed: 1.2,
+      curve: 2.5,
+      essential: true,
     });
   }
+
+  // 3. Render markers based on active layer
+  CATEGORIES.forEach((cat) => {
+    if (cat.id === "fuel") {
+      renderFuelMarkers(activeLayers.has(cat.id));
+    } else {
+      renderMarkers(cat.id, activeLayers.has(cat.id), resolvedCoords);
+    }
+  });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [coords.lat, coords.lng]);
+}, [mapLoaded, selectedDistrict, selectedProvince, selectedSubdistrict]);
 
 
   // ── Real fuel markers from Thunder Core ──────────────────────────────────
