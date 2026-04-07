@@ -492,25 +492,31 @@ useEffect(() => {
     resolvedCoords.lng = (bbox[0] + bbox[2]) / 2;
     resolvedCoords.lat = (bbox[1] + bbox[3]) / 2;
     
-    map.fitBounds(bbox, {
-      padding: 60,
-      pitch: 45,
-      bearing: -10,
-      speed: 1.2,
-      curve: 2.5,
-      essential: true,
-      easing: (t) => t * (2 - t)
-    });
+    setTimeout(() => {
+      if (!mapRef.current) return;
+      mapRef.current.fitBounds(bbox, {
+        padding: 60,
+        pitch: 45,
+        bearing: -10,
+        speed: 1.2,
+        curve: 2.5,
+        essential: true,
+        easing: (t) => t * (2 - t)
+      });
+    }, 200);
   } else {
-    map.flyTo({
-      center: [resolvedCoords.lng, resolvedCoords.lat],
-      zoom: 14,
-      pitch: 45,
-      bearing: -10,
-      speed: 1.2,
-      curve: 2.5,
-      essential: true,
-    });
+    setTimeout(() => {
+      if (!mapRef.current) return;
+      mapRef.current.flyTo({
+        center: [resolvedCoords.lng, resolvedCoords.lat],
+        zoom: 14,
+        pitch: 45,
+        bearing: -10,
+        speed: 1.2,
+        curve: 2.5,
+        essential: true,
+      });
+    }, 200);
   }
 
   // 3. Render markers based on active layer

@@ -46,24 +46,55 @@ export const useProvince = () => useContext(ProvinceContext);
 
 export const ProvinceProvider = ({ children }: { children: ReactNode }) => {
   const [provinces, setProvinces] = useState<Province[]>([]);
-  const [selectedProvince, setSelectedProvinceRaw] = useState<Province | null>(null);
-  const [selectedDistrict, setSelectedDistrictRaw] = useState<District | null>(null);
-  const [selectedSubdistrict, setSelectedSubdistrictRaw] = useState<Subdistrict | null>(null);
+  
+  const [selectedProvince, setSelectedProvinceRaw] = useState<Province | null>(() => {
+    try {
+      const saved = localStorage.getItem("cityzen_province");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  
+  const [selectedDistrict, setSelectedDistrictRaw] = useState<District | null>(() => {
+    try {
+      const saved = localStorage.getItem("cityzen_district");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  
+  const [selectedSubdistrict, setSelectedSubdistrictRaw] = useState<Subdistrict | null>(() => {
+    try {
+      const saved = localStorage.getItem("cityzen_subdistrict");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  
   const [loading, setLoading] = useState(true);
 
   const setSelectedProvince = (province: Province | null) => {
     setSelectedProvinceRaw(province);
+    if (province) localStorage.setItem("cityzen_province", JSON.stringify(province));
+    else localStorage.removeItem("cityzen_province");
+
     setSelectedDistrictRaw(null);
+    localStorage.removeItem("cityzen_district");
+    
     setSelectedSubdistrictRaw(null);
+    localStorage.removeItem("cityzen_subdistrict");
   };
 
   const setSelectedDistrict = (district: District | null) => {
     setSelectedDistrictRaw(district);
+    if (district) localStorage.setItem("cityzen_district", JSON.stringify(district));
+    else localStorage.removeItem("cityzen_district");
+
     setSelectedSubdistrictRaw(null);
+    localStorage.removeItem("cityzen_subdistrict");
   };
 
   const setSelectedSubdistrict = (subdistrict: Subdistrict | null) => {
     setSelectedSubdistrictRaw(subdistrict);
+    if (subdistrict) localStorage.setItem("cityzen_subdistrict", JSON.stringify(subdistrict));
+    else localStorage.removeItem("cityzen_subdistrict");
   };
 
   useEffect(() => {
@@ -75,8 +106,11 @@ export const ProvinceProvider = ({ children }: { children: ReactNode }) => {
 
       if (!error && data) {
         setProvinces(data);
-        const bangkok = data.find((p) => p.code === "10");
-        if (bangkok) setSelectedProvinceRaw(bangkok);
+        setSelectedProvinceRaw(prev => {
+          if (prev) return prev; // Keep the saved localized one
+          const bangkok = data.find((p) => p.code === "10");
+          return bangkok || null;
+        });
       }
       setLoading(false);
     };

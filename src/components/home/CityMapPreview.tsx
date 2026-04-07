@@ -413,7 +413,7 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   const mapRef           = useRef<mapboxgl.Map | null>(null);
   const markersRef       = useRef<mapboxgl.Marker[]>([]);
   const mapLoadedRef     = useRef(false);
-  const geojsonLoadedRef = useRef(false);
+  const [geojsonLoaded, setGeojsonLoaded] = useState(false);
 
   const provinceGeoJsonRef = useRef<any>(null);
   const districtGeoJsonRef = useRef<any>(null);
@@ -512,9 +512,8 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
           filter: ["==", "name", "__none__"],
         });
 
-        geojsonLoadedRef.current = true;
-        // Since refs don't trigger re-render, we force an update
-        setStationCount(v => v);
+        // Trigger re-render to apply the effect
+        setGeojsonLoaded(true);
       } catch (e) {
         console.warn("[CityMapPreview] GeoJSON failed:", e);
       }
@@ -527,7 +526,6 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
       cancelled = true;
       clearMarkers();
       mapLoadedRef.current = false;
-      geojsonLoadedRef.current = false;
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -539,7 +537,7 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
   // ── Fly + border on region change ─────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoadedRef.current || !geojsonLoadedRef.current) return;
+    if (!map || !mapLoadedRef.current || !geojsonLoaded) return;
 
     const code = selectedProvince?.code ?? null;
     const geoName = code ? provinceCodeToName[code] ?? null : null;
@@ -604,26 +602,32 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
 
     if (featureToFit) {
       const bbox = getBBox(featureToFit.geometry);
-      map.fitBounds(bbox, {
-        padding: 40,
-        pitch: 50,
-        bearing: -10,
-        speed: 1.2,
-        curve: 2.5,
-        essential: true,
-      });
+      setTimeout(() => {
+        if (!mapRef.current) return;
+        mapRef.current.fitBounds(bbox, {
+          padding: 40,
+          pitch: 50,
+          bearing: -10,
+          speed: 1.2,
+          curve: 2.5,
+          essential: true,
+        });
+      }, 200);
     } else {
-      map.flyTo({
-        center: [coords.lng, coords.lat],
-        zoom: 14,
-        pitch: 50,
-        bearing: -10,
-        speed: 1.2,
-        curve: 2.5,
-        essential: true,
-      });
+      setTimeout(() => {
+        if (!mapRef.current) return;
+        mapRef.current.flyTo({
+          center: [coords.lng, coords.lat],
+          zoom: 14,
+          pitch: 50,
+          bearing: -10,
+          speed: 1.2,
+          curve: 2.5,
+          essential: true,
+        });
+      }, 200);
     }
-  }, [coords.lat, coords.lng, selectedProvince, selectedDistrict, selectedSubdistrict]);
+  }, [coords.lat, coords.lng, selectedProvince, selectedDistrict, selectedSubdistrict, geojsonLoaded]);
 
   // ── Fetch & plot fuel markers ────────────────────────────────────────────
   useEffect(() => {
