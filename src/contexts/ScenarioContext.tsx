@@ -25,11 +25,18 @@ export interface ScenarioState {
   isLoading: boolean;
 }
 
-// ─── Thunder Core Supabase client (separate project from CityZen) ─────────────
-const thunderSupabase = createClient(
-  import.meta.env.VITE_THUNDER_SUPABASE_URL ?? "",
-  import.meta.env.VITE_THUNDER_SUPABASE_ANON_KEY ?? ""
-);
+// ─── Thunder Core Supabase client (lazy — only init when env vars exist) ──────
+let _thunderSupabase: ReturnType<typeof createClient> | null = null;
+
+function getThunderSupabase() {
+  const url = import.meta.env.VITE_THUNDER_SUPABASE_URL;
+  const key  = import.meta.env.VITE_THUNDER_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  if (!_thunderSupabase) {
+    _thunderSupabase = createClient(url, key);
+  }
+  return _thunderSupabase;
+}
 
 // ─── REST fetch ───────────────────────────────────────────────────────────────
 async function fetchScenario(): Promise<ScenarioState> {
@@ -95,9 +102,10 @@ export const ScenarioProvider = ({ children }: { children: ReactNode }) => {
   // Supabase Realtime subscription for live updates
   useEffect(() => {
     const appId = import.meta.env.VITE_THUNDER_APP_ID;
-    if (!appId) return;
+    const client = getThunderSupabase();
+    if (!appId || !client) return;
 
-    const channel = thunderSupabase
+    const channel = client
       .channel(`cityzen-scenario-${appId}`)
       .on(
         "postgres_changes",
@@ -117,7 +125,7 @@ export const ScenarioProvider = ({ children }: { children: ReactNode }) => {
       });
 
     return () => {
-      thunderSupabase.removeChannel(channel);
+      client.removeChannel(channel);
     };
   }, [applyPayload]);
 
