@@ -50,7 +50,7 @@ async function fetchScenario(): Promise<ScenarioState> {
 
   try {
     const res = await fetch(`${baseUrl}/api/applications/${appId}/scenario`, {
-      headers: { "X-Api-Key": apiKey },
+      headers: { "apikey": apiKey },
       // Prevent browser & CDN caching so we always get fresh data
       cache: "no-store",
     });
