@@ -11,6 +11,7 @@ import type { MapFilter } from "@/components/home/CityStatusBanner";
 import { useScenario } from "@/contexts/ScenarioContext";
 
 import { getMapboxToken } from "@/lib/mapbox";
+import { geoJsonCache }  from "@/lib/geoJsonCache";
 
 // ─── Thunder Core API (proxied via Vite to avoid CORS) ───────────────────────
 const THUNDER_BASE = "/thunder-api";
@@ -472,17 +473,15 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     map.on("load", async () => {
       mapLoadedRef.current = true;
       try {
-        const [resProv, resDist, resSubDist] = await Promise.all([
-          fetch(THAILAND_GEOJSON_URL),
-          fetch(DISTRICT_GEOJSON_URL),
-          fetch(SUBDISTRICT_GEOJSON_URL)
+        // ── Load GeoJSON (singleton cache — fetched once per session) ─────────────
+        const [geojson, distGeojson, subDistGeojson] = await Promise.all([
+          geoJsonCache.get(THAILAND_GEOJSON_URL),
+          geoJsonCache.get(DISTRICT_GEOJSON_URL),
+          geoJsonCache.get(SUBDISTRICT_GEOJSON_URL),
         ]);
-        const geojson = await resProv.json();
-        const distGeojson = await resDist.json();
-        const subDistGeojson = await resSubDist.json();
-        
-        provinceGeoJsonRef.current = geojson;
-        districtGeoJsonRef.current = distGeojson;
+
+        provinceGeoJsonRef.current    = geojson;
+        districtGeoJsonRef.current    = distGeojson;
         subdistrictGeoJsonRef.current = subDistGeojson;
 
         map.addSource(SOURCE_ID, { type: "geojson", data: geojson });
@@ -638,24 +637,6 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     }
   }, [coords.lat, coords.lng, selectedProvince, selectedDistrict, selectedSubdistrict, geojsonLoaded]);
 
-  // ── Apply Mapbox light preset based on scenario level ────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoadedRef.current) return;
-
-    const preset =
-      scenarioLevel === "watch"    ? "dusk" :
-      scenarioLevel === "crisis"   ? "night" :
-      scenarioLevel === "lockdown" ? "night" :
-      "day";
-
-    try {
-      map.setConfigProperty("basemap", "lightPreset", preset);
-    } catch {
-      // style not ready yet — ignore
-    }
-  }, [scenarioLevel]);
-
   // ── Fetch & plot fuel markers ────────────────────────────────────────────
   useEffect(() => {
     clearMarkers();
@@ -721,7 +702,33 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
 
       {/* Map container */}
       <div className="aspect-[16/7] w-full relative">
-        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
+        <div
+          ref={mapContainerRef}
+          className="absolute inset-0 w-full h-full"
+          style={{
+            filter:
+              scenarioLevel === "crisis" ? "saturate(0.45) brightness(0.85)" :
+              scenarioLevel === "lockdown" ? "grayscale(0.9) brightness(0.5)" :
+              scenarioLevel === "watch" ? "saturate(0.7)" :
+              "none",
+            transition: "filter 1.2s ease",
+          }}
+        />
+
+        {/* Scenario color tint */}
+        {scenarioLevel !== "normal" && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10"
+            style={{
+              background:
+                scenarioLevel === "crisis" ? "rgba(220,38,38,0.12)" :
+                scenarioLevel === "lockdown" ? "rgba(0,0,0,0.35)" :
+                scenarioLevel === "watch" ? "rgba(245,158,11,0.08)" :
+                "transparent",
+              transition: "background 1.2s ease",
+            }}
+          />
+        )}
 
         {/* Station modal (React overlay, not Mapbox popup) */}
         {selectedStation && (

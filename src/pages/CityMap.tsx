@@ -56,6 +56,7 @@ async function fetchFuelStations(provinceName: string): Promise<FuelStation[]> {
 }
 
 import { getMapboxToken } from "@/lib/mapbox";
+import { geoJsonCache }  from "@/lib/geoJsonCache";
 
 // ─── Thailand GeoJSON ────────────────────────────────────────────────────────
 const THAILAND_GEOJSON_URL =
@@ -329,19 +330,16 @@ useEffect(() => {
   map.addControl(new mapboxgl.ScaleControl({ unit: "metric" }), "bottom-right");
 
   map.on("load", async () => {
-    // ── Load Thailand GeoJSON for province, district and subdistrict borders ─────────────
+    // ── Load Thailand GeoJSON (singleton cache — fetched once per session) ──
     try {
-      const [resProv, resDist, resSubDist] = await Promise.all([
-        fetch(THAILAND_GEOJSON_URL),
-        fetch(DISTRICT_GEOJSON_URL),
-        fetch(SUBDISTRICT_GEOJSON_URL)
+      const [geojson, distGeojson, subDistGeojson] = await Promise.all([
+        geoJsonCache.get(THAILAND_GEOJSON_URL),
+        geoJsonCache.get(DISTRICT_GEOJSON_URL),
+        geoJsonCache.get(SUBDISTRICT_GEOJSON_URL),
       ]);
-      const geojson = await resProv.json();
-      const distGeojson = await resDist.json();
-      const subDistGeojson = await resSubDist.json();
-      
-      provinceGeoJsonRef.current = geojson;
-      districtGeoJsonRef.current = distGeojson;
+
+      provinceGeoJsonRef.current    = geojson;
+      districtGeoJsonRef.current    = distGeojson;
       subdistrictGeoJsonRef.current = subDistGeojson;
 
       map.addSource(GEO_SOURCE, { type: "geojson", data: geojson });
@@ -539,24 +537,6 @@ useEffect(() => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [mapLoaded, selectedDistrict, selectedProvince, selectedSubdistrict]);
 
-// ── Apply Mapbox light preset based on scenario level ────────────────────────
-useEffect(() => {
-  const map = mapRef.current;
-  if (!map || !mapLoaded) return;
-
-  const preset =
-    scenarioLevel === "watch"    ? "dusk" :
-    scenarioLevel === "crisis"   ? "night" :
-    scenarioLevel === "lockdown" ? "night" :
-    "day";
-
-  try {
-    map.setConfigProperty("basemap", "lightPreset", preset);
-  } catch {
-    // style might not be loaded yet — ignore
-  }
-}, [mapLoaded, scenarioLevel]);
-
 
   // ── Real fuel markers from Thunder Core ──────────────────────────────────
   const renderFuelMarkers = useCallback(async (active: boolean) => {
@@ -711,7 +691,33 @@ useEffect(() => {
       <div className="relative w-full" style={{ height: "calc(100vh - 57px)" }}>
 
         {/* ── Full-screen map ───────────────────────────────────────────── */}
-        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
+        <div
+          ref={mapContainerRef}
+          className="absolute inset-0 w-full h-full"
+          style={{
+            filter:
+              scenarioLevel === "crisis" ? "saturate(0.45) brightness(0.85)" :
+              scenarioLevel === "lockdown" ? "grayscale(0.9) brightness(0.5)" :
+              scenarioLevel === "watch" ? "saturate(0.7)" :
+              "none",
+            transition: "filter 1.2s ease",
+          }}
+        />
+
+        {/* ── Scenario color overlay on map ──────────────────────────────── */}
+        {scenarioLevel !== "normal" && (
+          <div
+            className="absolute inset-0 pointer-events-none z-10"
+            style={{
+              background:
+                scenarioLevel === "crisis" ? "rgba(220,38,38,0.12)" :
+                scenarioLevel === "lockdown" ? "rgba(0,0,0,0.35)" :
+                scenarioLevel === "watch" ? "rgba(245,158,11,0.08)" :
+                "transparent",
+              transition: "background 1.2s ease",
+            }}
+          />
+        )}
 
         {/* ── Search bar ───────────────────────────────────────────────── */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">
