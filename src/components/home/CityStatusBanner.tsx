@@ -1,110 +1,202 @@
-import { Fuel, Wind, Droplet, AlertTriangle, CheckCircle2 } from "lucide-react";
+/**
+ * CityStatusBanner.tsx
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Dynamic status cards that reflect the current Thunder Core scenario level.
+ * Each card shows different values, colors and severity indicators depending on
+ * whether the city is in normal / watch / crisis / lockdown state.
+ *
+ * Mock data is used until real APIs are wired up per card category.
+ */
+
+import { Fuel, Wind, Droplet, AlertTriangle, CheckCircle2, TrendingUp, Zap, ShieldAlert } from "lucide-react";
+import { useScenario, type ScenarioLevel } from "@/contexts/ScenarioContext";
 
 export type MapFilter = "fuel" | "weather" | "water" | "emergency" | null;
 
-const statusCards: {
-  icon: React.ElementType;
-  label: string;
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface CardData {
   value: string;
   unit: string;
   status: string;
-  statusColor: string;
-  bgClass: string;
-  activeBgClass: string;
-  iconColor: string;
+  severity: "ok" | "warn" | "danger" | "critical";
+  trend?: "up" | "down" | "stable";
+  highlight?: boolean; // pulse attention for this card
+}
+
+interface CardConfig {
+  id: MapFilter;
+  icon: React.ElementType;
+  label: string;
   filter: MapFilter;
-}[] = [
+  accentClass: string;          // border/ring color when active
+  iconColorClass: string;       // icon fill color (normal state)
+  data: Record<ScenarioLevel, CardData>;
+}
+
+// ─── Severity → colour map ────────────────────────────────────────────────────
+const SEVERITY_STYLES: Record<CardData["severity"], {
+  text: string; icon: React.ElementType; indicator: string
+}> = {
+  ok:       { text: "text-emerald-600", icon: CheckCircle2,  indicator: "bg-emerald-500" },
+  warn:     { text: "text-amber-600",   icon: TrendingUp,    indicator: "bg-amber-500"   },
+  danger:   { text: "text-red-500",     icon: AlertTriangle, indicator: "bg-red-500"     },
+  critical: { text: "text-red-700",     icon: ShieldAlert,   indicator: "bg-red-700"     },
+};
+
+// Gradient backgrounds per severity (card bg when inactive)
+const CARD_BG: Record<CardData["severity"], string> = {
+  ok:       "bg-gradient-to-b from-slate-50  to-white border border-slate-100",
+  warn:     "bg-gradient-to-b from-amber-50  to-white border border-amber-200",
+  danger:   "bg-gradient-to-b from-red-50    to-white border border-red-200",
+  critical: "bg-gradient-to-b from-red-100   to-red-50  border-2 border-red-400",
+};
+
+// ─── Mock data per card × scenario ───────────────────────────────────────────
+const CARDS: CardConfig[] = [
   {
+    id: "fuel",
     icon: Fuel,
     label: "น้ำมัน",
-    value: "35.5",
-    unit: "บาท/ลิตร",
-    status: "ปกติ",
-    statusColor: "text-success",
-    bgClass: "bg-gradient-to-b from-amber-50 to-white border border-amber-100",
-    activeBgClass: "bg-gradient-to-b from-amber-100 to-amber-50 border-2 border-amber-400 ring-2 ring-amber-200",
-    iconColor: "text-amber-500",
     filter: "fuel",
+    accentClass: "border-2 border-amber-400 ring-2 ring-amber-200",
+    iconColorClass: "text-amber-500",
+    data: {
+      normal:   { value: "35.5", unit: "บาท/ลิตร",  status: "ราคาปกติ",        severity: "ok",       trend: "stable" },
+      watch:    { value: "42.5", unit: "บาท/ลิตร",  status: "เฝ้าระวัง ราคาสูง", severity: "warn",   trend: "up",    highlight: true },
+      crisis:   { value: "67%",  unit: "ขาดแคลน",   status: "วิกฤต! ขาดแคลน",   severity: "danger",  trend: "up",    highlight: true },
+      lockdown: { value: "–",    unit: "ปิดบริการ",  status: "ระงับจำหน่าย",      severity: "critical",highlight: true },
+    },
   },
   {
+    id: "weather",
     icon: Wind,
-    label: "สภาพอากาศ",
-    value: "3",
-    unit: "pg/m8.",
-    status: "ปกติ",
-    statusColor: "text-success",
-    bgClass: "bg-gradient-to-b from-green-50 to-white border border-green-100",
-    activeBgClass: "bg-gradient-to-b from-green-100 to-green-50 border-2 border-green-400 ring-2 ring-green-200",
-    iconColor: "text-green-500",
+    label: "คุณภาพอากาศ",
     filter: "weather",
+    accentClass: "border-2 border-green-400 ring-2 ring-green-200",
+    iconColorClass: "text-green-500",
+    data: {
+      normal:   { value: "42",  unit: "AQI",   status: "คุณภาพดี",          severity: "ok"                        },
+      watch:    { value: "85",  unit: "AQI",   status: "เริ่มมีผลต่อสุขภาพ",  severity: "warn",   trend: "up"        },
+      crisis:   { value: "152", unit: "AQI",   status: "ไม่ดีต่อสุขภาพ",     severity: "danger", trend: "up",  highlight: true },
+      lockdown: { value: "215", unit: "AQI",   status: "อันตรายมาก",          severity: "critical", highlight: true   },
+    },
   },
   {
+    id: "water",
     icon: Droplet,
     label: "น้ำประปา",
-    value: "5",
-    unit: "pg/m8",
-    status: "ปกติ",
-    statusColor: "text-success",
-    bgClass: "bg-gradient-to-b from-cyan-50 to-white border border-cyan-100",
-    activeBgClass: "bg-gradient-to-b from-cyan-100 to-cyan-50 border-2 border-cyan-400 ring-2 ring-cyan-200",
-    iconColor: "text-cyan-500",
     filter: "water",
+    accentClass: "border-2 border-cyan-400 ring-2 ring-cyan-200",
+    iconColorClass: "text-cyan-500",
+    data: {
+      normal:   { value: "100%", unit: "พร้อมใช้",    status: "จ่ายน้ำปกติ",         severity: "ok"                          },
+      watch:    { value: "78%",  unit: "พร้อมใช้",    status: "ลดแรงดัน บางพื้นที่",  severity: "warn",    trend: "down"       },
+      crisis:   { value: "12",   unit: "โซนหยุดจ่าย", status: "หยุดจ่าย หลายพื้นที่", severity: "danger",  trend: "down", highlight: true },
+      lockdown: { value: "–",    unit: "สำรองเท่านั้น", status: "จ่ายเฉพาะจุดฉุกเฉิน", severity: "critical", highlight: true },
+    },
   },
   {
+    id: "emergency",
     icon: AlertTriangle,
     label: "เหตุฉุกเฉิน",
-    value: "1",
-    unit: "รายการ",
-    status: "ปกติ",
-    statusColor: "text-success",
-    bgClass: "bg-gradient-to-b from-red-50 to-white border border-red-100",
-    activeBgClass: "bg-gradient-to-b from-red-100 to-red-50 border-2 border-red-400 ring-2 ring-red-200",
-    iconColor: "text-red-400",
     filter: "emergency",
+    accentClass: "border-2 border-red-400 ring-2 ring-red-200",
+    iconColorClass: "text-red-400",
+    data: {
+      normal:   { value: "0",  unit: "รายการ", status: "ไม่มีเหตุฉุกเฉิน",   severity: "ok"                        },
+      watch:    { value: "3",  unit: "รายการ", status: "กำลังติดตาม",         severity: "warn",    trend: "up"       },
+      crisis:   { value: "24", unit: "รายการ", status: "เหตุฉุกเฉินหลายจุด",  severity: "danger",  trend: "up", highlight: true },
+      lockdown: { value: "!",  unit: "ประกาศ", status: "สถานการณ์ฉุกเฉินสูงสุด",severity: "critical", highlight: true  },
+    },
   },
 ];
 
+// ─── Component ────────────────────────────────────────────────────────────────
 interface CityStatusBannerProps {
   activeFilter: MapFilter;
   onFilterChange: (filter: MapFilter) => void;
 }
 
 const CityStatusBanner = ({ activeFilter, onFilterChange }: CityStatusBannerProps) => {
+  const { level } = useScenario();
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-      {statusCards.map((card) => {
+      {CARDS.map((card) => {
         const isActive = activeFilter === card.filter;
+        const data     = card.data[level];
+        const severity = SEVERITY_STYLES[data.severity];
+        const SeverityIcon = severity.icon;
+
+        const bgClass = isActive
+          ? `${CARD_BG[data.severity]} ${card.accentClass}`
+          : CARD_BG[data.severity];
+
         return (
           <button
-            key={card.label}
+            key={card.id}
+            id={`status-card-${card.id}`}
             onClick={() => onFilterChange(isActive ? null : card.filter)}
-            className={`relative rounded-2xl ${isActive ? card.activeBgClass : card.bgClass} p-4 lg:p-5 overflow-hidden text-left transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:shadow-md`}
+            className={`relative rounded-2xl ${bgClass} p-4 lg:p-5 overflow-hidden text-left
+              transition-all duration-500 cursor-pointer hover:scale-[1.02] hover:shadow-md`}
           >
-            {/* Wave decoration at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-6 opacity-30">
+            {/* Pulse ring when highlight (crisis/lockdown) */}
+            {data.highlight && !isActive && (
+              <span className={`absolute inset-0 rounded-2xl ${severity.indicator} opacity-10 animate-pulse`} />
+            )}
+
+            {/* Severity dot top-left */}
+            <span className={`absolute top-2.5 left-2.5 w-2 h-2 rounded-full ${severity.indicator}
+              ${data.severity !== "ok" ? "animate-pulse" : ""}`}
+            />
+
+            {/* Active indicator top-right */}
+            {isActive && (
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-accent animate-pulse" />
+            )}
+
+            {/* Wave decoration */}
+            <div className="absolute bottom-0 left-0 right-0 h-6 opacity-20">
               <svg viewBox="0 0 200 20" className="w-full h-full" preserveAspectRatio="none">
-                <path d="M0,10 Q50,0 100,10 T200,10 V20 H0 Z" fill="hsl(210, 80%, 80%)" />
+                <path d="M0,10 Q50,0 100,10 T200,10 V20 H0 Z" fill="currentColor" className={severity.text} />
               </svg>
             </div>
 
-            <div className="flex items-start justify-between mb-2">
-              <card.icon className={`h-8 w-8 lg:h-10 lg:w-10 ${card.iconColor}`} />
+            {/* Icon + value row */}
+            <div className="flex items-start justify-between mb-2 mt-1">
+              <card.icon className={`h-7 w-7 lg:h-9 lg:w-9 transition-colors duration-500 ${
+                data.severity === "ok" ? card.iconColorClass : severity.text
+              }`} />
               <div className="text-right">
-                <span className="text-2xl lg:text-4xl font-extrabold text-foreground">{card.value}</span>
-                <span className="text-xs lg:text-sm font-medium text-muted-foreground ml-0.5">{card.unit}</span>
+                <span className={`text-2xl lg:text-3xl font-extrabold transition-colors duration-500 ${
+                  data.severity !== "ok" ? severity.text : "text-foreground"
+                }`}>
+                  {data.value}
+                </span>
+                <span className="text-[10px] lg:text-xs font-medium text-muted-foreground ml-1 block leading-tight">
+                  {data.unit}
+                </span>
               </div>
             </div>
 
-            <p className="text-sm lg:text-base font-semibold text-foreground">{card.label}</p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <CheckCircle2 className={`h-3.5 w-3.5 ${card.statusColor}`} />
-              <span className={`text-xs font-medium ${card.statusColor}`}>{card.status}</span>
+            {/* Label */}
+            <p className="text-sm lg:text-sm font-semibold text-foreground leading-tight">
+              {card.label}
+            </p>
+
+            {/* Status row */}
+            <div className="flex items-center gap-1 mt-1">
+              <SeverityIcon className={`h-3.5 w-3.5 shrink-0 ${severity.text}`} />
+              <span className={`text-[11px] font-medium leading-tight ${severity.text}`}>
+                {data.status}
+              </span>
             </div>
 
-            {isActive && (
-              <div className="absolute top-2 right-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse" />
-              </div>
+            {/* Trend arrow */}
+            {data.trend && data.trend !== "stable" && (
+              <span className={`absolute bottom-8 right-3 text-xs font-bold ${severity.text}`}>
+                {data.trend === "up" ? "↑" : "↓"}
+              </span>
             )}
           </button>
         );
@@ -114,3 +206,5 @@ const CityStatusBanner = ({ activeFilter, onFilterChange }: CityStatusBannerProp
 };
 
 export default CityStatusBanner;
+
+
