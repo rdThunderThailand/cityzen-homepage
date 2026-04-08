@@ -8,7 +8,8 @@
  * Mock data is used until real APIs are wired up per card category.
  */
 
-import { Fuel, Wind, Droplet, AlertTriangle, CheckCircle2, TrendingUp, Zap, ShieldAlert } from "lucide-react";
+import { useMemo } from "react";
+import { Fuel, Wind, Droplet, AlertTriangle, CheckCircle2, TrendingUp, ShieldAlert } from "lucide-react";
 import { useScenario, type ScenarioLevel } from "@/contexts/ScenarioContext";
 
 export type MapFilter = "fuel" | "weather" | "water" | "emergency" | null;
@@ -31,6 +32,8 @@ interface CardConfig {
   accentClass: string;          // border/ring color when active
   iconColorClass: string;       // icon fill color (normal state)
   data: Record<ScenarioLevel, CardData>;
+  /** Lower = shown first. Defined per scenario so urgency drives order. */
+  priority: Record<ScenarioLevel, number>;
 }
 
 // ─── Severity → colour map ────────────────────────────────────────────────────
@@ -52,6 +55,7 @@ const CARD_BG: Record<CardData["severity"], string> = {
 };
 
 // ─── Mock data per card × scenario ───────────────────────────────────────────
+// priority: lower number = shown first (most urgent / most important right now)
 const CARDS: CardConfig[] = [
   {
     id: "fuel",
@@ -60,6 +64,12 @@ const CARDS: CardConfig[] = [
     filter: "fuel",
     accentClass: "border-2 border-amber-400 ring-2 ring-amber-200",
     iconColorClass: "text-amber-500",
+    priority: {
+      normal:   1, // ราคาน้ำมันคือสิ่งที่คนสนใจสูงสุดในภาวะปกติ
+      watch:    2, // ราคาพุ่ง — ยังสำคัญแต่เหตุฉุกเฉินเริ่มมา
+      crisis:   2, // น้ำมันขาดแคลน — สำคัญมาก รองจากเหตุฉุกเฉิน
+      lockdown: 3, // ปิดบริการแล้ว — รู้แล้ว ไม่ต้องเน้น
+    },
     data: {
       normal:   { value: "35.5", unit: "บาท/ลิตร",  status: "ราคาปกติ",        severity: "ok",       trend: "stable" },
       watch:    { value: "42.5", unit: "บาท/ลิตร",  status: "เฝ้าระวัง ราคาสูง", severity: "warn",   trend: "up",    highlight: true },
@@ -74,11 +84,17 @@ const CARDS: CardConfig[] = [
     filter: "weather",
     accentClass: "border-2 border-green-400 ring-2 ring-green-200",
     iconColorClass: "text-green-500",
+    priority: {
+      normal:   2, // AQI ดี — น้ำมันสำคัญกว่า
+      watch:    4, // ยังพอสนใจ แต่มี 3 เรื่องเร่งด่วนกว่า
+      crisis:   4, // อันตราย แต่เรื่องฉุกเฉิน น้ำมัน น้ำ เร่งกว่า
+      lockdown: 4, // อันตรายมาก — แต่ประชาชนอยู่ใน lockdown แล้ว
+    },
     data: {
-      normal:   { value: "42",  unit: "AQI",   status: "คุณภาพดี",          severity: "ok"                        },
+      normal:   { value: "42",  unit: "AQI",   status: "คุณภาพดี",          severity: "ok"                         },
       watch:    { value: "85",  unit: "AQI",   status: "เริ่มมีผลต่อสุขภาพ",  severity: "warn",   trend: "up"        },
-      crisis:   { value: "152", unit: "AQI",   status: "ไม่ดีต่อสุขภาพ",     severity: "danger", trend: "up",  highlight: true },
-      lockdown: { value: "215", unit: "AQI",   status: "อันตรายมาก",          severity: "critical", highlight: true   },
+      crisis:   { value: "152", unit: "AQI",   status: "ไม่ดีต่อสุขภาพ",     severity: "danger", trend: "up",  highlight: true  },
+      lockdown: { value: "215", unit: "AQI",   status: "อันตรายมาก",          severity: "critical", highlight: true  },
     },
   },
   {
@@ -88,11 +104,17 @@ const CARDS: CardConfig[] = [
     filter: "water",
     accentClass: "border-2 border-cyan-400 ring-2 ring-cyan-200",
     iconColorClass: "text-cyan-500",
+    priority: {
+      normal:   3, // ปกติ ไม่มีปัญหา
+      watch:    3, // เริ่มลดแรงดัน — น่าติดตาม
+      crisis:   3, // หยุดจ่ายหลายโซน — เร่งด่วนมาก รองจากฉุกเฉิน+น้ำมัน
+      lockdown: 2, // น้ำสำรอง — สำคัญมากในภาวะ lockdown คนต้องรู้
+    },
     data: {
-      normal:   { value: "100%", unit: "พร้อมใช้",    status: "จ่ายน้ำปกติ",         severity: "ok"                          },
-      watch:    { value: "78%",  unit: "พร้อมใช้",    status: "ลดแรงดัน บางพื้นที่",  severity: "warn",    trend: "down"       },
-      crisis:   { value: "12",   unit: "โซนหยุดจ่าย", status: "หยุดจ่าย หลายพื้นที่", severity: "danger",  trend: "down", highlight: true },
-      lockdown: { value: "–",    unit: "สำรองเท่านั้น", status: "จ่ายเฉพาะจุดฉุกเฉิน", severity: "critical", highlight: true },
+      normal:   { value: "100%", unit: "พร้อมใช้",     status: "จ่ายน้ำปกติ",         severity: "ok"                         },
+      watch:    { value: "78%",  unit: "พร้อมใช้",     status: "ลดแรงดัน บางพื้นที่",  severity: "warn",    trend: "down"       },
+      crisis:   { value: "12",   unit: "โซนหยุดจ่าย",  status: "หยุดจ่าย หลายพื้นที่", severity: "danger",  trend: "down", highlight: true },
+      lockdown: { value: "–",    unit: "สำรองเท่านั้น", status: "จ่ายเฉพาะจุดฉุกเฉิน", severity: "critical", highlight: true  },
     },
   },
   {
@@ -102,11 +124,17 @@ const CARDS: CardConfig[] = [
     filter: "emergency",
     accentClass: "border-2 border-red-400 ring-2 ring-red-200",
     iconColorClass: "text-red-400",
+    priority: {
+      normal:   4, // ไม่มีเหตุ — ลำดับสุดท้าย
+      watch:    1, // มีเหตุ 3 จุด — คนต้องรู้ก่อน
+      crisis:   1, // เหตุฉุกเฉิน 24 จุด — สำคัญสุด
+      lockdown: 1, // ประกาศฉุกเฉินสูงสุด — สำคัญสุดเสมอ
+    },
     data: {
-      normal:   { value: "0",  unit: "รายการ", status: "ไม่มีเหตุฉุกเฉิน",   severity: "ok"                        },
-      watch:    { value: "3",  unit: "รายการ", status: "กำลังติดตาม",         severity: "warn",    trend: "up"       },
-      crisis:   { value: "24", unit: "รายการ", status: "เหตุฉุกเฉินหลายจุด",  severity: "danger",  trend: "up", highlight: true },
-      lockdown: { value: "!",  unit: "ประกาศ", status: "สถานการณ์ฉุกเฉินสูงสุด",severity: "critical", highlight: true  },
+      normal:   { value: "0",  unit: "รายการ", status: "ไม่มีเหตุฉุกเฉิน",    severity: "ok"                         },
+      watch:    { value: "3",  unit: "รายการ", status: "กำลังติดตาม",          severity: "warn",    trend: "up"        },
+      crisis:   { value: "24", unit: "รายการ", status: "เหตุฉุกเฉินหลายจุด",   severity: "danger",  trend: "up", highlight: true },
+      lockdown: { value: "!",  unit: "ประกาศ", status: "สถานการณ์ฉุกเฉินสูงสุด", severity: "critical", highlight: true },
     },
   },
 ];
@@ -120,9 +148,16 @@ interface CityStatusBannerProps {
 const CityStatusBanner = ({ activeFilter, onFilterChange }: CityStatusBannerProps) => {
   const { level } = useScenario();
 
+  // Sort cards by priority for the current scenario level.
+  // Cards with lower priority number float to the front — most urgent first.
+  const sortedCards = useMemo(
+    () => [...CARDS].sort((a, b) => a.priority[level] - b.priority[level]),
+    [level]
+  );
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-      {CARDS.map((card) => {
+      {sortedCards.map((card) => {
         const isActive = activeFilter === card.filter;
         const data     = card.data[level];
         const severity = SEVERITY_STYLES[data.severity];
