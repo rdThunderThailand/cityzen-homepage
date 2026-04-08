@@ -539,6 +539,24 @@ useEffect(() => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [mapLoaded, selectedDistrict, selectedProvince, selectedSubdistrict]);
 
+// ── Apply Mapbox light preset based on scenario level ────────────────────────
+useEffect(() => {
+  const map = mapRef.current;
+  if (!map || !mapLoaded) return;
+
+  const preset =
+    scenarioLevel === "watch"    ? "dusk" :
+    scenarioLevel === "crisis"   ? "night" :
+    scenarioLevel === "lockdown" ? "night" :
+    "day";
+
+  try {
+    map.setConfigProperty("basemap", "lightPreset", preset);
+  } catch {
+    // style might not be loaded yet — ignore
+  }
+}, [mapLoaded, scenarioLevel]);
+
 
   // ── Real fuel markers from Thunder Core ──────────────────────────────────
   const renderFuelMarkers = useCallback(async (active: boolean) => {
@@ -693,33 +711,7 @@ useEffect(() => {
       <div className="relative w-full" style={{ height: "calc(100vh - 57px)" }}>
 
         {/* ── Full-screen map ───────────────────────────────────────────── */}
-        <div
-          ref={mapContainerRef}
-          className="absolute inset-0 w-full h-full"
-          style={{
-            filter:
-              scenarioLevel === "crisis" ? "saturate(0.45) brightness(0.85)" :
-              scenarioLevel === "lockdown" ? "grayscale(0.9) brightness(0.5)" :
-              scenarioLevel === "watch" ? "saturate(0.7)" :
-              "none",
-            transition: "filter 1.2s ease",
-          }}
-        />
-
-        {/* ── Scenario color overlay on map ──────────────────────────────── */}
-        {scenarioLevel !== "normal" && (
-          <div
-            className="absolute inset-0 pointer-events-none z-10"
-            style={{
-              background:
-                scenarioLevel === "crisis" ? "rgba(220,38,38,0.12)" :
-                scenarioLevel === "lockdown" ? "rgba(0,0,0,0.35)" :
-                scenarioLevel === "watch" ? "rgba(245,158,11,0.08)" :
-                "transparent",
-              transition: "background 1.2s ease",
-            }}
-          />
-        )}
+        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
 
         {/* ── Search bar ───────────────────────────────────────────────── */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4">

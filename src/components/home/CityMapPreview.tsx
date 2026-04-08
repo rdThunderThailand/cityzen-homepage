@@ -638,6 +638,24 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
     }
   }, [coords.lat, coords.lng, selectedProvince, selectedDistrict, selectedSubdistrict, geojsonLoaded]);
 
+  // ── Apply Mapbox light preset based on scenario level ────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current) return;
+
+    const preset =
+      scenarioLevel === "watch"    ? "dusk" :
+      scenarioLevel === "crisis"   ? "night" :
+      scenarioLevel === "lockdown" ? "night" :
+      "day";
+
+    try {
+      map.setConfigProperty("basemap", "lightPreset", preset);
+    } catch {
+      // style not ready yet — ignore
+    }
+  }, [scenarioLevel]);
+
   // ── Fetch & plot fuel markers ────────────────────────────────────────────
   useEffect(() => {
     clearMarkers();
@@ -703,33 +721,7 @@ const CityMapPreview = ({ activeFilter }: CityMapPreviewProps) => {
 
       {/* Map container */}
       <div className="aspect-[16/7] w-full relative">
-        <div
-          ref={mapContainerRef}
-          className="absolute inset-0 w-full h-full"
-          style={{
-            filter:
-              scenarioLevel === "crisis" ? "saturate(0.45) brightness(0.85)" :
-              scenarioLevel === "lockdown" ? "grayscale(0.9) brightness(0.5)" :
-              scenarioLevel === "watch" ? "saturate(0.7)" :
-              "none",
-            transition: "filter 1.2s ease",
-          }}
-        />
-
-        {/* Scenario color tint */}
-        {scenarioLevel !== "normal" && (
-          <div
-            className="absolute inset-0 pointer-events-none z-10"
-            style={{
-              background:
-                scenarioLevel === "crisis" ? "rgba(220,38,38,0.12)" :
-                scenarioLevel === "lockdown" ? "rgba(0,0,0,0.35)" :
-                scenarioLevel === "watch" ? "rgba(245,158,11,0.08)" :
-                "transparent",
-              transition: "background 1.2s ease",
-            }}
-          />
-        )}
+        <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
 
         {/* Station modal (React overlay, not Mapbox popup) */}
         {selectedStation && (
