@@ -4,6 +4,7 @@ import CityStatusBanner, { type MapFilter } from "@/components/home/CityStatusBa
 import CityMapPreview from "@/components/home/CityMapPreview";
 import CommunityEvents from "@/components/home/CommunityEvents";
 import NewsSection from "@/components/home/NewsSection";
+import ProjectsQuotaListing from "@/components/home/ProjectsQuotaListing";
 
 const Index = () => {
   const [activeFilter, setActiveFilter] = useState<MapFilter>(null);
@@ -12,6 +13,7 @@ const Index = () => {
     <PublicLayout>
       <div className="container py-4 lg:py-6 space-y-4 lg:space-y-6">
         <CityStatusBanner activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+        <ProjectsQuotaListing />
         <CityMapPreview activeFilter={activeFilter} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CommunityEvents />

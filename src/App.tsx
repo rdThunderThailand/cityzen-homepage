@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProvinceProvider } from "./contexts/ProvinceContext";
 import { ScenarioProvider } from "./contexts/ScenarioContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { ErrorBoundary }   from "./components/ErrorBoundary";
 
 // ─── Lazy-loaded pages (code-split per route) ─────────────────────────────────
@@ -72,13 +73,15 @@ const App = () => (
     <TooltipProvider>
       <ScenarioProvider>
         <ProvinceProvider>
-          <Toaster />
-          <Sonner />
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <RouterProvider router={router} future={{ v7_startTransition: true }} />
-            </Suspense>
-          </ErrorBoundary>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
+                <RouterProvider router={router} future={{ v7_startTransition: true }} />
+              </Suspense>
+            </ErrorBoundary>
+          </AuthProvider>
         </ProvinceProvider>
       </ScenarioProvider>
     </TooltipProvider>
