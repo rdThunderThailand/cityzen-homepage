@@ -14,128 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          national_id: string | null
-          full_name: string | null
-          phone_number: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id: string
-          national_id?: string | null
-          full_name?: string | null
-          phone_number?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          national_id?: string | null
-          full_name?: string | null
-          phone_number?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-           {
-             foreignKeyName: "profiles_id_fkey"
-             columns: ["id"]
-             isOneToOne: true
-             referencedRelation: "users"
-             referencedColumns: ["id"]
-           }
-        ]
-      }
-      projects: {
-        Row: {
-          id: string
-          title: string
-          description: string | null
-          total_quota: number
-          remaining_quota: number
-          start_date: string | null
-          end_date: string | null
-          priority_conditions: Json | null
-          is_active: boolean | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          title: string
-          description?: string | null
-          total_quota?: number
-          remaining_quota?: number
-          start_date?: string | null
-          end_date?: string | null
-          priority_conditions?: Json | null
-          is_active?: boolean | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string | null
-          total_quota?: number
-          remaining_quota?: number
-          start_date?: string | null
-          end_date?: string | null
-          priority_conditions?: Json | null
-          is_active?: boolean | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      reservations: {
-        Row: {
-          id: string
-          project_id: string | null
-          user_id: string | null
-          qr_code_data: string
-          status: string | null
-          created_at: string | null
-          used_at: string | null
-        }
-        Insert: {
-          id?: string
-          project_id?: string | null
-          user_id?: string | null
-          qr_code_data: string
-          status?: string | null
-          created_at?: string | null
-          used_at?: string | null
-        }
-        Update: {
-          id?: string
-          project_id?: string | null
-          user_id?: string | null
-          qr_code_data?: string
-          status?: string | null
-          created_at?: string | null
-          used_at?: string | null
-        }
-        Relationships: [
-          {
-             foreignKeyName: "reservations_project_id_fkey"
-             columns: ["project_id"]
-             isOneToOne: false
-             referencedRelation: "projects"
-             referencedColumns: ["id"]
-          },
-          {
-             foreignKeyName: "reservations_user_id_fkey"
-             columns: ["user_id"]
-             isOneToOne: false
-             referencedRelation: "profiles"
-             referencedColumns: ["id"]
-          }
-        ]
-      }
       districts: {
         Row: {
           code: string | null
@@ -423,14 +301,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      reserve_project_quota: {
-        Args: {
-          p_project_id: string
-          p_user_id: string
-          p_qr_data: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       report_status:
