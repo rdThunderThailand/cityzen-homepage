@@ -155,6 +155,75 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          national_id: string | null
+          phone_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          national_id?: string | null
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          national_id?: string | null
+          phone_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          priority_conditions: Json | null
+          remaining_quota: number
+          start_date: string | null
+          title: string
+          total_quota: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority_conditions?: Json | null
+          remaining_quota?: number
+          start_date?: string | null
+          title: string
+          total_quota?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority_conditions?: Json | null
+          remaining_quota?: number
+          start_date?: string | null
+          title?: string
+          total_quota?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       provinces: {
         Row: {
           code: string | null
@@ -258,6 +327,51 @@ export type Database = {
           },
         ]
       }
+      reservations: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string | null
+          qr_code_data: string
+          status: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          qr_code_data: string
+          status?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          qr_code_data?: string
+          status?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subdistricts: {
         Row: {
           code: string | null
@@ -301,7 +415,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reserve_project_quota: {
+        Args: { p_project_id: string; p_qr_data: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       report_status:
